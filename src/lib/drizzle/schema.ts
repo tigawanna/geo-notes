@@ -1,14 +1,11 @@
-import { sqliteTable, integer, text,blob } from "drizzle-orm/sqlite-core";
-import { InferSelectModel, sql } from "drizzle-orm";
-
-
-
+import { sqliteTable, integer, text, blob } from "drizzle-orm/sqlite-core";
+import { InferSelectModel, InferInsertModel, sql } from "drizzle-orm";
 
 export const notes = sqliteTable("notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title"),
   content: text("content").notNull(),
-  quickCopy:text("quick_copy"),
+  quickCopy: text("quick_copy"),
   type: text("type").default("note").notNull(),
   status: text("status").default("active"),
   tags: text("tags"),
@@ -30,6 +27,6 @@ export const notes = sqliteTable("notes", {
   locationPoint: text("location_point"), // Added by AddGeometryColumn
 });
 
-
 // Infer the select type for the users table
 export type GeoNoteSelect = InferSelectModel<typeof notes>;
+export type GeoNoteInsert = InferInsertModel<typeof notes>;

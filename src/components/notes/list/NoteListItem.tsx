@@ -1,7 +1,7 @@
 import { GeoNoteSelect } from "@/lib/drizzle/schema";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Card,MD3Theme ,Text} from "react-native-paper";
-import { CustomChip } from "../shared/ui/CustomChip";
+import { Card, MD3Theme, Text } from "react-native-paper";
+import { CustomChip } from "../../shared/ui/CustomChip";
 
 interface NoteListItemProps {
   item: GeoNoteSelect;

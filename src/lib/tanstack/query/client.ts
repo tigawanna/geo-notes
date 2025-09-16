@@ -4,10 +4,8 @@ import { MutationCache, QueryClient } from "@tanstack/react-query";
 export const queryKeyPrefixes = {
   db: "db",
   spatialite: "spatialite-version", 
-  wards: "wards", 
-  currentWard:"current-ward",
-  closestWard:"closest-ward",
-  deviceLocation:"device-location"
+  deviceLocation:"device-location",
+  closestWard:"notes",
 } as const;
 
 
