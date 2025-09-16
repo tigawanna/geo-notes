@@ -1,50 +1,95 @@
-# Welcome to your Expo app 👋
+# GeoNotes
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**🚧 Work in Progress 🚧**
 
-## Get started
+GeoNotes is a React Native mobile application built with Expo that automatically organizes your notes based on your current location. **All operations run 100% locally** - no internet connection required after initial installation. The app uses SQLite with Spatialite for offline geospatial data storage and leverages modern React Native development practices.
 
-1. Install dependencies
+**Note:** This is currently an Android-only project. iOS support is not yet implemented.
+
+## Features
+
+- **100% Offline Operation** - All data and functionality work without internet connection
+- **Location-Based Note Sorting** - Notes automatically organize themselves based on your current location
+- Real-time location detection and distance calculations
+- Advanced search and filtering through your notes
+- Material Design 3 with dynamic color theming (Material You)
+- Dark/light mode with automatic system preference detection
+- Local SQLite database with Spatialite extension for geospatial queries
+- Responsive UI optimized for mobile devices
+
+## Prerequisites
+
+- Node.js (LTS version recommended)
+- Expo CLI
+- Android Studio (for Android development/emulator)
+- npm package manager
+
+## Getting Started
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone <repository-url>
+   cd geo-notes
+   ```
+
+2. **Install dependencies:**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Start the development server:**
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. **Run on Android:**
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npx expo run:android
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+5. **Run on iOS:**
+   ```bash
+   npx expo run:ios
+   ```
 
-## Get a fresh project
+## Project Structure
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+src/
+├── app/                 # File-based routing with Expo Router
+│   ├── (tabs)/          # Tab navigation screens
+│   │   ├── index.tsx      # Home screen (notes list)
+│   │   ├── explore.tsx    # Explore screen
+│   │   └── settings.tsx   # Settings screen
+│   ├── _layout.tsx        # Root layout with providers
+│   └── +not-found.tsx     # 404 screen
+├── components/          # Reusable UI components
+├── constants/           # Application constants
+├── hooks/               # Custom React hooks
+├── lib/                 # Library integrations and utilities
+├── store/               # Global state management
+└── modules/             # Custom Expo modules
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Key Technologies
 
-## Learn more
+- **Framework**: React Native with Expo
+- **Navigation**: Expo Router (file-based routing)
+- **UI Library**: React Native Paper with Material Design 3
+- **State Management**: Zustand for global state, React Query for local data caching
+- **Database**: SQLite with Spatialite extension via custom Expo modules (100% local)
+- **ORM**: Drizzle ORM for type-safe database operations
+- **Storage**: AsyncStorage for persisted settings and preferences
+- **Geospatial**: Local coordinate calculations and distance computations
 
-To learn more about developing your project with Expo, look at the following resources:
+## Privacy & Offline Operation
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**GeoNotes operates entirely offline** - your location data and notes never leave your device. All geographic calculations, database queries, and note organization are performed locally using the embedded SQLite database with Spatialite extensions.
 
-## Join the community
+## Platform Support
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This is currently an **Android-only** project. While the codebase uses cross-platform technologies, it has only been tested and optimized for Android devices. iOS support is not yet implemented and may require additional work to function properly.
