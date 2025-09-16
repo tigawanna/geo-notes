@@ -1,5 +1,5 @@
-import { GeoNotes } from "@/components/notes/GeoNotes";
-import { Surface,Text } from "react-native-paper";
+import { GeoNotes } from "@/components/notes/list/GeoNotes";
+import { Surface } from "react-native-paper";
 
 export default function HomeScreen() {
   return (
