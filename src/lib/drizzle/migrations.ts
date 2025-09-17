@@ -4,7 +4,6 @@ CREATE TABLE notes (
 	title text,
 	content text NOT NULL,
 	quick_copy text,
-	type text DEFAULT 'note' NOT NULL,
 	status text DEFAULT 'active',
 	tags text,
 	metadata text,
@@ -16,7 +15,10 @@ CREATE TABLE notes (
 	due_date text,
 	last_viewed text DEFAULT (CURRENT_TIMESTAMP),
 	created_at text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	updated_at text DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+	updated_at text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+
+	latitude integer,
+	longitude integer
 );
 
 SELECT AddGeometryColumn('notes', 'location_point', 4326, 'POINT', 'XY');

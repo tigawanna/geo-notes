@@ -1,12 +1,13 @@
 import { sqliteTable, integer, text, blob } from "drizzle-orm/sqlite-core";
 import { InferSelectModel, InferInsertModel, sql } from "drizzle-orm";
+import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 
 export const notes = sqliteTable("notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title"),
   content: text("content").notNull(),
   quickCopy: text("quick_copy"),
-  type: text("type").default("note").notNull(),
+  type: text("type").default("note"),
   status: text("status").default("active"),
   tags: text("tags"),
   meta: text("metadata", { mode: "json" }),
@@ -23,6 +24,8 @@ export const notes = sqliteTable("notes", {
   updatedAt: text("updated_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
+  latitude:integer("latitude"),
+  longitude:integer("longitude"),
   // Spatial column (will be populated by Spatialite)
   locationPoint: text("location_point"), // Added by AddGeometryColumn
 });
@@ -30,3 +33,8 @@ export const notes = sqliteTable("notes", {
 // Infer the select type for the users table
 export type GeoNoteSelect = InferSelectModel<typeof notes>;
 export type GeoNoteInsert = InferInsertModel<typeof notes>;
+
+export const insertNoteSchema = createInsertSchema(notes);
+export type InsertNoteSchemaType = typeof insertNoteSchema;
+export const updateNoteSchema = createUpdateSchema(notes);
+export type UpdateNoteSchemaType = typeof updateNoteSchema;
