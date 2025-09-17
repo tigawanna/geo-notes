@@ -19,22 +19,28 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import { LoadingIndicatorDots } from "@/components/state-screens/LoadingIndicatorDots";
+import { updateNoteMutationFunction } from "@/data-access-layer/mutate-notes";
+import { useMutation } from "@tanstack/react-query";
+
+
+
 
 interface NotesFormProps {
-  mutator: (payload: GeoNoteInsert) => void;
-  isSubmitting: boolean;
-  existingNote?: GeoNoteSelect;
+  existingNote?: GeoNoteSelect | null;
 }
 
-export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProps) {
+export function NotesForm({ existingNote }: NotesFormProps) {
   const theme = useTheme();
-  const { location, isRefreshing, refetch, isLoading } = useDeviceLocation();
-  const [overwriteLocation, setOverwriteLocation] = useState(false);
+  const { location } = useDeviceLocation();
+  const { mutate, isPending } = useMutation(updateNoteMutationFunction);
+  // const { location, isRefreshing, refetch, isLoading } = useDeviceLocation();
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(existingNote?.tags?.split(",") || []);
+  const [overwriteLocation, setOverwriteLocation] = useState(false);
 
-  const { control, handleSubmit, setValue } = useForm<GeoNoteSelect>({
+  const { control, handleSubmit, setValue } = useForm({
     defaultValues: {
+      type: existingNote?.type || "note",
       title: existingNote?.title || "",
       content: existingNote?.content || "",
       quickCopy: existingNote?.quickCopy || "",
@@ -47,7 +53,7 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
       latitude: existingNote?.latitude ?? location?.coords.latitude,
       longitude: existingNote?.longitude ?? location?.coords.longitude,
     },
-    resolver: existingNote ? zodResolver(updateNoteSchema) : (zodResolver(insertNoteSchema) as any),
+    resolver: zodResolver(updateNoteSchema),
   });
 
   const addTag = () => {
@@ -66,11 +72,13 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
   };
 
   const onSubmit = (data: GeoNoteInsert) => {
-    mutator({
-      ...data,
-      tags: tags.join(","),
-      // longitude,latitude
-      locationPoint: `GeomFromText('POINT(${data.longitude} ${data.latitude})', 4326)`,
+    mutate({
+      payload: {
+        ...data,
+        latitude: overwriteLocation ? location?.coords.latitude : data.latitude,
+        longitude: overwriteLocation ? location?.coords.longitude : data.longitude,
+      },
+      id: existingNote?.id as number,
     });
   };
 
@@ -88,7 +96,7 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
               placeholder="Title"
               style={[
                 styles.input,
-                { color: theme.colors.onBackground, padding: 6, fontWeight: "600",fontSize:24 },
+                { color: theme.colors.onBackground, padding: 6, fontWeight: "600", fontSize: 24 },
               ]}
             />
           )}
@@ -101,17 +109,21 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
             <TextInput
               // label="Content"
               placeholder="Content"
-              value={value}
+              value={value ?? undefined}
               onChangeText={onChange}
               multiline
               numberOfLines={10}
-              style={[styles.input, { 
-                minHeight: 250,
-                flexGrow: 1, 
-                fontSize:16,
-                justifyContent: "flex-start",
-                 textAlignVertical: 'top' ,
-                color: theme.colors.onBackground }]}
+              style={[
+                styles.input,
+                {
+                  minHeight: 250,
+                  flexGrow: 1,
+                  fontSize: 16,
+                  justifyContent: "flex-start",
+                  textAlignVertical: "top",
+                  color: theme.colors.onBackground,
+                },
+              ]}
             />
           )}
         />
@@ -222,11 +234,11 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
       </ScrollView>
 
       <Button
-        disabled={isSubmitting}
+        disabled={isPending}
         mode="contained-tonal"
         onPress={handleSubmit(onSubmit)}
         style={styles.submitButton}>
-        {isSubmitting ? (
+        {isPending ? (
           <LoadingIndicatorDots />
         ) : (
           <Text>{existingNote ? "Update Note" : "Create Note"}</Text>

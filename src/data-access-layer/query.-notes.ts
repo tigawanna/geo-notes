@@ -1,5 +1,7 @@
 import { db } from "@/lib/drizzle/client";
-import { infiniteQueryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
+import { is } from "drizzle-orm";
+import { isSingleStoreSchema } from "drizzle-orm/singlestore-core";
 
 interface GetNotesByLocationQueryOptionsProprs {
   location: {
@@ -32,6 +34,31 @@ export function getNotesByLocationQueryOptions({ location }: GetNotesByLocationQ
       const prevItem = lastPage.result.at(-1);
       if (!prevItem) return undefined;
       return prevItem?.id;
+    },
+  });
+}
+
+interface GetNoteByIdQueryOptionsProps {
+  id: number;
+}
+export function getNoteByIdQueryOptions({ id }: GetNoteByIdQueryOptionsProps) {
+  return queryOptions({
+    queryKey: ["notes", id],
+    queryFn: async () => {
+      try {
+        const result = await db.query.notes.findFirst({
+          where: (notes, { eq }) => eq(notes.id, id),
+        });
+        return {
+          result,
+          error: null,
+        };
+      } catch (error) {
+        return {
+          result: null,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
     },
   });
 }

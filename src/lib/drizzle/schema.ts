@@ -5,7 +5,7 @@ import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 export const notes = sqliteTable("notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title"),
-  content: text("content").notNull(),
+  content: text("content"),
   quickCopy: text("quick_copy"),
   type: text("type").default("note"),
   status: text("status").default("active"),
@@ -36,5 +36,6 @@ export type GeoNoteInsert = InferInsertModel<typeof notes>;
 
 export const insertNoteSchema = createInsertSchema(notes);
 export type InsertNoteSchemaType = typeof insertNoteSchema;
+
 export const updateNoteSchema = createUpdateSchema(notes);
 export type UpdateNoteSchemaType = typeof updateNoteSchema;
