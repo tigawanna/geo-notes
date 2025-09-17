@@ -5,8 +5,16 @@ import {
   insertNoteSchema,
 } from "@/lib/drizzle/schema";
 import { useForm, Controller } from "react-hook-form";
-import { StyleSheet, ScrollView, View } from "react-native";
-import { TextInput, Button, SegmentedButtons, Chip, Switch, Text } from "react-native-paper";
+import { StyleSheet, ScrollView, View, TextInput } from "react-native";
+import {
+  TextInput as PaperTextView,
+  Button,
+  SegmentedButtons,
+  Chip,
+  Switch,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDeviceLocation } from "@/hooks/use-device-location";
@@ -19,7 +27,8 @@ interface NotesFormProps {
 }
 
 export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProps) {
-  const { errorMsg, location, isRefreshing, refetch, isLoading } = useDeviceLocation();
+  const theme = useTheme();
+  const { location, isRefreshing, refetch, isLoading } = useDeviceLocation();
   const [overwriteLocation, setOverwriteLocation] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(existingNote?.tags?.split(",") || []);
@@ -67,39 +76,52 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Controller
-        control={control}
-        name="title"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            label="Title"
-            value={value as string | undefined}
-            onChangeText={onChange}
-            style={styles.input}
-          />
-        )}
-      />
+      <View>
+        <Controller
+          control={control}
+          name="title"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              // label="Title"
+              value={value as string | undefined}
+              onChangeText={onChange}
+              placeholder="Title"
+              style={[
+                styles.input,
+                { color: theme.colors.onBackground, padding: 6, fontWeight: "600",fontSize:24 },
+              ]}
+            />
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="content"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            label="Content"
-            value={value}
-            onChangeText={onChange}
-            multiline
-            numberOfLines={4}
-            style={styles.input}
-          />
-        )}
-      />
+        <Controller
+          control={control}
+          name="content"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              // label="Content"
+              placeholder="Content"
+              value={value}
+              onChangeText={onChange}
+              multiline
+              numberOfLines={10}
+              style={[styles.input, { 
+                minHeight: 250,
+                flexGrow: 1, 
+                fontSize:16,
+                justifyContent: "flex-start",
+                 textAlignVertical: 'top' ,
+                color: theme.colors.onBackground }]}
+            />
+          )}
+        />
+      </View>
 
       <Controller
         control={control}
         name="quickCopy"
         render={({ field: { onChange, value } }) => (
-          <TextInput
+          <PaperTextView
             label="Quick Copy"
             value={value ?? undefined}
             onChangeText={onChange}
@@ -111,7 +133,7 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
         control={control}
         name="longitude"
         render={({ field: { onChange, value } }) => (
-          <TextInput
+          <PaperTextView
             label="longitude"
             value={value ? value.toString() : undefined}
             onChangeText={onChange}
@@ -123,7 +145,7 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
         control={control}
         name="latitude"
         render={({ field: { onChange, value } }) => (
-          <TextInput
+          <PaperTextView
             label="latitude"
             value={value ? value.toString() : undefined}
             onChangeText={onChange}
@@ -182,12 +204,12 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
         )}
       />
 
-      <TextInput
+      <PaperTextView
         label="Add Tag"
         value={tagInput}
         onChangeText={setTagInput}
         onSubmitEditing={addTag}
-        right={<TextInput.Icon icon="plus" onPress={addTag} />}
+        right={<PaperTextView.Icon icon="plus" onPress={addTag} />}
         style={styles.input}
       />
 
@@ -201,7 +223,7 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
 
       <Button
         disabled={isSubmitting}
-        mode="contained"
+        mode="contained-tonal"
         onPress={handleSubmit(onSubmit)}
         style={styles.submitButton}>
         {isSubmitting ? (
@@ -217,15 +239,20 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
+    padding: 14,
   },
   content: {
-    padding: 16,
+    // padding: ,
+    paddingBottom: 100,
+    gap: 12,
   },
   input: {
-    marginBottom: 16,
+    // marginBottom: 16,
+    // border
   },
   tagsContainer: {
-    marginBottom: 16,
+    // marginBottom: 16,
   },
   tag: {
     marginRight: 8,
@@ -237,6 +264,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    // marginBottom: 16,
   },
 });
