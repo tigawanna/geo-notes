@@ -24,4 +24,10 @@ CREATE TABLE notes (
 SELECT AddGeometryColumn('notes', 'location_point', 4326, 'POINT', 'XY');
 `;
 
-export const migrations = [notes];
+export const migrations = {
+  tables: [{
+	notes: {
+		sql: notes,
+	},
+  }],
+};
