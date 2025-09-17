@@ -86,7 +86,7 @@ export function NotesForm({ mutator, existingNote, isSubmitting }: NotesFormProp
         render={({ field: { onChange, value } }) => (
           <TextInput
             label="Content"
-            value={value}
+            value={value??undefined}
             onChangeText={onChange}
             multiline
             numberOfLines={4}

@@ -2,7 +2,7 @@ const notes = `
 CREATE TABLE notes (
 	id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	title text,
-	content text NOT NULL,
+	content text,
 	quick_copy text,
 	status text DEFAULT 'active',
 	tags text,

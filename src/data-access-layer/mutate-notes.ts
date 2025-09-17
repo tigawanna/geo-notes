@@ -4,8 +4,19 @@ import { mutationOptions } from "@tanstack/react-query";
 import { eq } from "drizzle-orm";
 
 export const createNoteMutationFunction = mutationOptions({
-  mutationFn: ({ payload }: { payload: GeoNoteInsert }) => {
-    return db.insert(notes).values(payload);
+  mutationFn: async ({ payload }: { payload: GeoNoteInsert }) => {
+    try {
+      const result = await db.insert(notes).values(payload).returning({ insertedId: notes.id });
+      return {
+        result:result[0].insertedId,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Unknown error",
+        result: null,
+      };
+    }
   },
   meta: {
     invalidates: [["notes"]],
@@ -13,8 +24,19 @@ export const createNoteMutationFunction = mutationOptions({
 });
 
 export const updateNoteMutationFunction = mutationOptions({
-  mutationFn: ({ id, payload }: { id: number; payload: Partial<GeoNoteInsert> }) => {
-    return db.update(notes).set(payload).where(eq(notes.id, id));
+  mutationFn: async ({ id, payload }: { id: number; payload: Partial<GeoNoteInsert> }) => {
+    try {
+      const result = await db.update(notes).set(payload).where(eq(notes.id, id)).returning();
+      return {
+        result,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Unknown error",
+        result: null,
+      };
+    }
   },
   meta: {
     invalidates: [["notes"]],

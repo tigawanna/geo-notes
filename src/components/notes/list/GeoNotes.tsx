@@ -4,37 +4,30 @@ import { useTheme, AnimatedFAB, FAB, Surface } from "react-native-paper";
 import { dummyNotes } from "./data";
 import { NoteListItem } from "./NoteListItem";
 import { GeoNoteSelect } from "@/lib/drizzle/schema";
-import { useState } from "react";
-import { CreateNotes } from "../form/CreateNotes";
-import { useSafeAreaFrame, useSafeAreaInsets } from "react-native-safe-area-context";
+import { createNoteMutationFunction } from "@/data-access-layer/mutate-notes";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { useSnackbarStore } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
 
 export function GeoNotes() {
   const notes = dummyNotes as any as GeoNoteSelect[];
   const theme = useTheme();
-  const [createModalOpen, setCreateNodalOpen] = useState(false);
-  const { bottom, left, right, top } = useSafeAreaInsets();
+  const router = useRouter();
+  const { showSnackbar } = useSnackbarStore();
+  const { mutate, isPending, data } = useMutation({
+    ...createNoteMutationFunction,
+    onSuccess(data, variables, onMutateResult, context) {
+      if (data.error) {
+        return showSnackbar(data.error, { duration: 5000 });
+      }
+      if (data.result) {
+        router.push(`/notes/${data.result}`);
+      }
+    },
+  });
 
   return (
     <View style={styles.container}>
-      <Modal
-        visible={createModalOpen}
-        onRequestClose={() => setCreateNodalOpen(false)}
-        presentationStyle="pageSheet"
-        animationType="slide"
-        style={{ maxHeight: "90%", width: "100%" }}>
-        <Surface
-          style={{
-            maxHeight: "100%",
-            flex: 1,
-            width: "100%",
-            paddingTop: top,
-            paddingBottom: bottom,
-            paddingLeft: left,
-            paddingRight: right,
-          }}>
-          <CreateNotes />
-        </Surface>
-      </Modal>
       <FlashList
         style={styles.container}
         data={notes}
@@ -46,8 +39,12 @@ export function GeoNotes() {
       />
       <FAB
         icon={"plus"}
-        onPress={() => {
-          setCreateNodalOpen(true);
+        onPress={async () => {
+          mutate({
+            payload: {
+              title: "Untitled",
+            },
+          });
         }}
         style={[
           {
