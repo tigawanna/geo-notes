@@ -1,7 +1,5 @@
 import { db } from "@/lib/drizzle/client";
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
-import { is } from "drizzle-orm";
-import { isSingleStoreSchema } from "drizzle-orm/singlestore-core";
 
 interface GetNotesByLocationQueryOptionsProprs {
   location: {
@@ -43,7 +41,7 @@ interface GetNoteByIdQueryOptionsProps {
 }
 export function getNoteByIdQueryOptions({ id }: GetNoteByIdQueryOptionsProps) {
   return queryOptions({
-    queryKey: ["notes", id],
+    queryKey: ["notes","single", id],
     queryFn: async () => {
       try {
         const result = await db.query.notes.findFirst({
