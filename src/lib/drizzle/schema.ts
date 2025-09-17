@@ -39,3 +39,29 @@ export type InsertNoteSchemaType = typeof insertNoteSchema;
 
 export const updateNoteSchema = createUpdateSchema(notes);
 export type UpdateNoteSchemaType = typeof updateNoteSchema;
+
+export const notesHistory = sqliteTable("notes_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  noteId: integer("note_id").notNull(),
+  title: text("title"),
+  content: text("content"),
+  quickCopy: text("quick_copy"),
+  type: text("type"),
+  status: text("status"),
+  tags: text("tags"),
+  meta: text("metadata", { mode: "json" }),
+  imagePath: text("image_path"),
+  priority: integer("priority"),
+  reminderAt: text("reminder_at"),
+  completedAt: text("completed_at"),
+  dueDate: text("due_date"),
+  latitude: integer("latitude"),
+  longitude: integer("longitude"),
+  changeType: text("change_type").notNull(),
+  changedAt: text("changed_at")
+    .default(sql`(CURRENT_TIMESTAMP)`)
+    .notNull(),
+});
+
+export type NotesHistorySelect = InferSelectModel<typeof notesHistory>;
+export type NotesHistoryInsert = InferInsertModel<typeof notesHistory>;
