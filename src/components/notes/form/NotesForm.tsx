@@ -1,26 +1,25 @@
+import { LoadingIndicatorDots } from "@/components/state-screens/LoadingIndicatorDots";
+import { updateNoteMutationFunction } from "@/data-access-layer/mutate-notes";
+import { useDeviceLocation } from "@/hooks/use-device-location";
 import {
   GeoNoteInsert,
   GeoNoteSelect,
-  updateNoteSchema,
-  insertNoteSchema,
+  updateNoteSchema
 } from "@/lib/drizzle/schema";
-import { useForm, Controller } from "react-hook-form";
-import { StyleSheet, ScrollView, View, TextInput } from "react-native";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import {
-  TextInput as PaperTextView,
   Button,
-  SegmentedButtons,
   Chip,
+  TextInput as PaperTextView,
+  SegmentedButtons,
   Switch,
   Text,
   useTheme,
 } from "react-native-paper";
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useDeviceLocation } from "@/hooks/use-device-location";
-import { LoadingIndicatorDots } from "@/components/state-screens/LoadingIndicatorDots";
-import { updateNoteMutationFunction } from "@/data-access-layer/mutate-notes";
-import { useMutation } from "@tanstack/react-query";
 
 
 

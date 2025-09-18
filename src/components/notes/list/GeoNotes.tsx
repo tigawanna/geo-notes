@@ -1,31 +1,26 @@
+import { getNotesByLocationQueryOptions } from "@/data-access-layer/query.-notes";
+import { useDeviceLocation } from "@/hooks/use-device-location";
 import { FlashList } from "@shopify/flash-list";
-import { StyleSheet, View, Modal, Platform } from "react-native";
-import { useTheme, AnimatedFAB, FAB, Surface } from "react-native-paper";
-import { dummyNotes } from "./data";
-import { NoteListItem } from "./NoteListItem";
-import { GeoNoteSelect } from "@/lib/drizzle/schema";
-import { createNoteMutationFunction } from "@/data-access-layer/mutate-notes";
-import { useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useSnackbarStore } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
+import { StyleSheet, View } from "react-native";
+import { useTheme } from "react-native-paper";
+import { NewGeoNoteTrigger } from "./NewGeoNoteTrigger";
+import { NoteListItem } from "./NoteListItem";
 
 export function GeoNotes() {
-  const notes = dummyNotes as any as GeoNoteSelect[];
   const theme = useTheme();
   const router = useRouter();
-  const { showSnackbar } = useSnackbarStore();
-  const { mutate, isPending, data } = useMutation({
-    ...createNoteMutationFunction,
-    onSuccess(data, variables, onMutateResult, context) {
-      if (data.error) {
-        return showSnackbar(data.error, { duration: 5000 });
-      }
-      if (data.result) {
-        router.push(`/notes/${data.result}`);
-      }
-    },
-  });
-
+  const { location } = useDeviceLocation();
+  const { data } = useInfiniteQuery(
+    getNotesByLocationQueryOptions({
+      location: {
+        lat: location?.coords.latitude ?? 0,
+        lng: location?.coords.longitude ?? 0,
+      },
+    })
+  );
+  const notes = data?.pages?.flatMap((page) => page.result) ?? [];
   return (
     <View style={styles.container}>
       <FlashList
@@ -34,26 +29,16 @@ export function GeoNotes() {
         masonry
         numColumns={2}
         renderItem={({ item }) => (
-          <NoteListItem item={item} theme={theme} onPress={() => console.log("Pressed")} />
+          <NoteListItem
+            item={item}
+            theme={theme}
+            onPress={() => {
+              router.push(`/notes/${item.id}`);
+            }}
+          />
         )}
       />
-      <FAB
-        icon={"plus"}
-        onPress={async () => {
-          mutate({
-            payload: {
-              title: "Untitled",
-            },
-          });
-        }}
-        style={[
-          {
-            bottom: 16,
-            right: 16,
-            position: "absolute",
-          },
-        ]}
-      />
+      <NewGeoNoteTrigger />
     </View>
   );
 }
