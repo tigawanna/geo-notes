@@ -12,24 +12,23 @@ interface NoteListItemProps {
 export function NoteListItem({ item, onPress, theme }: NoteListItemProps) {
   const { colors } = theme;
   const tags = item.tags?.split(",").filter(Boolean) || [];
-
   return (
     <Pressable style={[styles.container, { }]} onPress={onPress}>
       <Card
         style={{ height: "100%", backgroundColor: colors.surface }}
         elevation={4}>
         <Card.Content style={styles.content}>
-          {item.title && (
+          {item.title ? (
             <Text style={[styles.title, { color: colors.onSurface }]} numberOfLines={2}>
               {item.title}
             </Text>
-          )}
+          ):null}
 
           <Text style={[styles.content, { color: colors.onSurfaceVariant }]} numberOfLines={4}>
             {item.content}
           </Text>
 
-          {tags.length > 0 && (
+          {tags.length > 0 ? (
             <View style={styles.tagsContainer}>
               {tags.slice(0, 2).map((tag, index) => (
                 <CustomChip key={index} theme={theme}>
@@ -40,13 +39,13 @@ export function NoteListItem({ item, onPress, theme }: NoteListItemProps) {
                 <Text style={[styles.moreText, { color: colors.outline }]}>+{tags.length - 2}</Text>
               )}
             </View>
-          )}
+          ):null}
 
-          {item?.priority && item?.priority > 0 && (
+          {(item?.priority && item?.priority > 0) ? (
             <View style={[styles.priorityBadge, { backgroundColor: colors.primary }]}>
               <Text style={[styles.priorityText, { color: colors.onPrimary }]}>!</Text>
             </View>
-          )}
+          ):null}
         </Card.Content>
       </Card>
     </Pressable>

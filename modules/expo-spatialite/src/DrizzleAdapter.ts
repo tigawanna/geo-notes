@@ -15,9 +15,9 @@ export class ExpoSpatialiteDrizzle {
     params: SpatialiteParam[] = [],
     method: Sqlite3Method = "all"
   ): Promise<RawResultData> {
-    // logger.sql("exec called with sql:", sql);
-    // logger.log("exec called with params:", params);
-    // console.log("exec called with method:", method);
+    logger.sql("exec called with sql:", sql);
+    logger.log("exec called with params:", params);
+    logger.log("exec called with method:", method);
 
     switch (method) {
       case "run":
@@ -33,7 +33,7 @@ export class ExpoSpatialiteDrizzle {
       case "all":
       case "values":
       default:
-        const allResult = await ExpoSpatialiteModule.executeQuery(sql, params);
+        const allResult = await ExpoSpatialiteModule.executeRawQuery(sql, params);
         const allRows = allResult.data.map((row: { [key: string]: any }) => Object.values(row));
         const allColumns = Object.keys(allResult.data[0]);
         const result = { rows: allRows, columns: allColumns };
