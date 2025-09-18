@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS notes (
 	created_at text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	updated_at text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 
-	latitude integer,
-	longitude integer
+	latitude real,
+	longitude real
 );`,
 
   `CREATE INDEX IF NOT EXISTS idx_notes_title ON notes(title);`,
@@ -56,8 +56,10 @@ CREATE TABLE IF NOT EXISTS notes_history (
 	reminder_at text,
 	completed_at text,
 	due_date text,
-	latitude integer,
-	longitude integer,
+
+	latitude real,
+	longitude real,
+
 	change_type text NOT NULL,
 	changed_at text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE
@@ -107,7 +109,7 @@ const triggers = [
 
 export const migrations = {
   operations: [...notes, ...notesHistory, ...triggers],
-  version: 1,
+  version: 2,
 };
 
 export async function checkVersion(db: OnInitMethods) {
