@@ -6,6 +6,9 @@ import {
   GeoNoteSelect,
   updateNoteSchema
 } from "@/lib/drizzle/schema";
+import { FormErrorDisplay } from "@/lib/react-hook-form/FormErrorDisplay";
+import { FormFieldError } from "@/lib/react-hook-form/FormFieldError";
+import { FormStateDebug } from "@/lib/react-hook-form/FormStateDebug";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -37,7 +40,9 @@ export function NotesForm({ existingNote }: NotesFormProps) {
   const [tags, setTags] = useState<string[]>(existingNote?.tags?.split(",") || []);
   const [overwriteLocation, setOverwriteLocation] = useState(false);
 
-  const { control, handleSubmit, setValue } = useForm({
+
+
+const form = useForm({
     defaultValues: {
       type: existingNote?.type || "note",
       title: existingNote?.title || "",
@@ -54,7 +59,7 @@ export function NotesForm({ existingNote }: NotesFormProps) {
     },
     resolver: zodResolver(updateNoteSchema),
   });
-
+  const { control, handleSubmit, setValue } = form
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       const newTags = [...tags, tagInput.trim()];
@@ -71,15 +76,19 @@ export function NotesForm({ existingNote }: NotesFormProps) {
   };
 
   const onSubmit = (data: GeoNoteInsert) => {
+    const payload: GeoNoteInsert = {
+      ...data,
+      latitude: overwriteLocation ? location?.coords.latitude : data.latitude,
+      longitude: overwriteLocation ? location?.coords.longitude : data.longitude,
+    };
+    console.log("payload == ", payload)
     mutate({
-      payload: {
-        ...data,
-        latitude: overwriteLocation ? location?.coords.latitude : data.latitude,
-        longitude: overwriteLocation ? location?.coords.longitude : data.longitude,
-      },
+      payload,
       id: existingNote?.id as number,
     });
   };
+console.log("is dirty == ",form.formState.isDirty)
+console.log("is valid == ", form.formState.isValid)
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -87,43 +96,49 @@ export function NotesForm({ existingNote }: NotesFormProps) {
         <Controller
           control={control}
           name="title"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              // label="Title"
-              value={value as string | undefined}
-              onChangeText={onChange}
-              placeholder="Title"
-              style={[
-                styles.input,
-                { color: theme.colors.onBackground, padding: 6, fontWeight: "600", fontSize: 24 },
-              ]}
-            />
+          render={({ field: { onChange, value, name } }) => (
+            <FormFieldError fieldName={name} form={form}>
+              <TextInput
+                // label="Title"
+                value={value as string | undefined}
+                onChangeText={(text)=>onChange(text)}
+                placeholder="Title"
+                style={[
+                  styles.input,
+                  { color: theme.colors.onBackground, padding: 6, fontWeight: "600", fontSize: 24 },
+                ]}
+              />
+            </FormFieldError>
           )}
         />
 
         <Controller
           control={control}
           name="content"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              // label="Content"
-              placeholder="Content"
-              value={value ?? undefined}
-              onChangeText={onChange}
-              multiline
-              numberOfLines={10}
-              style={[
-                styles.input,
-                {
-                  minHeight: 250,
-                  flexGrow: 1,
-                  fontSize: 16,
-                  justifyContent: "flex-start",
-                  textAlignVertical: "top",
-                  color: theme.colors.onBackground,
-                },
-              ]}
-            />
+          render={({ field: { onChange, value, name } }) => (
+            <FormFieldError fieldName={name} form={form}>
+              <TextInput
+                // label="Content"
+                placeholder="Content"
+                value={value ?? undefined}
+                onChangeText={(text) => {
+                  onChange(text);
+                }}
+                multiline
+                numberOfLines={10}
+                style={[
+                  styles.input,
+                  {
+                    minHeight: 250,
+                    flexGrow: 1,
+                    fontSize: 16,
+                    justifyContent: "flex-start",
+                    textAlignVertical: "top",
+                    color: theme.colors.onBackground,
+                  },
+                ]}
+              />
+            </FormFieldError>
           )}
         />
       </View>
@@ -131,37 +146,43 @@ export function NotesForm({ existingNote }: NotesFormProps) {
       <Controller
         control={control}
         name="quickCopy"
-        render={({ field: { onChange, value } }) => (
-          <PaperTextView
-            label="Quick Copy"
-            value={value ?? undefined}
-            onChangeText={onChange}
-            style={styles.input}
-          />
+        render={({ field: { onChange, value, name } }) => (
+          <FormFieldError fieldName={name} form={form}>
+            <PaperTextView
+              label="Quick Copy"
+              value={value ?? undefined}
+              onChangeText={onChange}
+              style={styles.input}
+            />
+          </FormFieldError>
         )}
       />
       <Controller
         control={control}
         name="longitude"
-        render={({ field: { onChange, value } }) => (
-          <PaperTextView
-            label="longitude"
-            value={value ? value.toString() : undefined}
-            onChangeText={onChange}
-            style={styles.input}
-          />
+        render={({ field: { onChange, value,name } }) => (
+         <FormFieldError fieldName={name} form={form}>
+           <PaperTextView
+             label="longitude"
+             value={value ? value.toString() : undefined}
+             onChangeText={onChange}
+             style={styles.input}
+           />
+         </FormFieldError> 
         )}
       />
       <Controller
         control={control}
         name="latitude"
-        render={({ field: { onChange, value } }) => (
-          <PaperTextView
-            label="latitude"
-            value={value ? value.toString() : undefined}
-            onChangeText={onChange}
-            style={styles.input}
-          />
+        render={({ field: { onChange, value, name } }) => (
+          <FormFieldError fieldName={name} form={form}>
+            <PaperTextView
+              label="latitude"
+              value={value ? value.toString() : undefined}
+              onChangeText={onChange}
+              style={styles.input}
+            />
+          </FormFieldError>
         )}
       />
 
@@ -231,7 +252,20 @@ export function NotesForm({ existingNote }: NotesFormProps) {
           </Chip>
         ))}
       </ScrollView>
+      {/* Enhanced Error Display - Just pass the form! */}
+      <FormErrorDisplay
+        form={form}
+        title="Please fix the following errors:"
+        maxErrors={5}
+        style={{ marginTop: 8 }}
+      />
 
+      {/* Development Debug Info - Just pass the form! */}
+      <FormStateDebug
+        form={form}
+        title="🔧 Debug Form Errors"
+        showFullState={true} // false = errors only, true = full form state
+      />
       <Button
         disabled={isPending}
         mode="contained-tonal"

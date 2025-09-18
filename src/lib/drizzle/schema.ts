@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, blob } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, blob, real } from "drizzle-orm/sqlite-core";
 import { InferSelectModel, InferInsertModel, sql } from "drizzle-orm";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 
@@ -24,8 +24,8 @@ export const notes = sqliteTable("notes", {
   updatedAt: text("updated_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
-  latitude:integer("latitude"),
-  longitude:integer("longitude"),
+  latitude:real("latitude"),
+  longitude:real("longitude"),
   // Spatial column (will be populated by Spatialite)
   locationPoint: text("location_point"), // Added by AddGeometryColumn
 });
@@ -55,8 +55,8 @@ export const notesHistory = sqliteTable("notes_history", {
   reminderAt: text("reminder_at"),
   completedAt: text("completed_at"),
   dueDate: text("due_date"),
-  latitude: integer("latitude"),
-  longitude: integer("longitude"),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
   changeType: text("change_type").notNull(),
   changedAt: text("changed_at")
     .default(sql`(CURRENT_TIMESTAMP)`)
