@@ -5,8 +5,6 @@ import { SymbolWeight } from "expo-symbols";
 import React from "react";
 import { OpaqueColorValue, StyleProp, ViewStyle } from "react-native";
 
-
-export type MaterialIconNameType = React.ComponentProps<typeof MaterialCommunityIcon>["name"];
 // Add your SFSymbol to MaterialIcons mappings here.
 const MAPPING = {
   // See MaterialIcons here: https://icons.expo.fyi
@@ -72,8 +70,8 @@ export function MaterialCommunityIcon({
   return <MaterialCommunityIcons color={color} size={size} name={name} style={style} />;
 }
 
-
+// for react native paper button and icon button
+export type MaterialIconNameType = React.ComponentProps<typeof MaterialCommunityIcon>["name"];
 export function getMaterialIconName(name: MaterialIconNameType) {
   return name
 }
-
