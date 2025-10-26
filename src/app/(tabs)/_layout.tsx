@@ -1,14 +1,14 @@
 import { Tabs } from "expo-router";
 import React from "react";
-
 import { HapticTab } from "@/components/default/haptic-tab";
-import { IconSymbol, MaterialIcon } from "@/components/default/ui/icon-symbol";
+import { MaterialCommunityIcon, MaterialIcon } from "@/components/default/ui/icon-symbol";
 import { Platform } from "react-native";
 import { useTheme } from "react-native-paper";
+import { useDeviceLocation } from "@/hooks/use-device-location";
 
 export default function TabLayout() {
   const { colors } = useTheme();
-
+  useDeviceLocation();
   return (
     <Tabs
       screenOptions={{
@@ -33,15 +33,19 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          headerShown: true,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcon size={28} name="home-map-marker" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcon size={28} name="view-list" color={color} />
+          ),
         }}
       />
       <Tabs.Screen

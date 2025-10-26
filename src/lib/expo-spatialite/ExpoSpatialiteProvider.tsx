@@ -8,15 +8,6 @@ import {
   executePragmaQuery,
   closeDatabase,
 } from "@/modules/expo-spatialite";
-import ExpoSpatialiteModule from "@/modules/expo-spatialite/src/ExpoSpatialiteModule";
-
-export type OnInitMethods = {
-  executeQuery: typeof executeQuery;
-  executePragmaQuery: typeof executePragmaQuery;
-  executeStatement: typeof executeStatement;
-  executeTransaction: typeof ExpoSpatialiteModule.executeTransaction;
-  executeRawQuery: typeof ExpoSpatialiteModule.executeRawQuery;
-};
 
 export interface ExpoSpatialiteProviderAssetSource {
   /**
@@ -50,14 +41,14 @@ export interface ExpoSpatialiteProviderProps {
    * ```ts
    * // Direct usage with require
    * assetSource={{ assetId: require('../assets/databases/sample.db') }}
-   *
+   * 
    * // With Asset.fromModule and forceOverwrite
    * const asset = await Asset.fromModule(require("../assets/databases/sample.db")).downloadAsync();
    * assetSource={{
    *   assetId: asset,
    *   forceOverwrite: true
    * }}
-   *
+   * 
    * // With downloaded asset from URL
    * const asset = Asset.fromURI('https://example.com/database.db');
    * await asset.downloadAsync();
@@ -90,7 +81,11 @@ export interface ExpoSpatialiteProviderProps {
    * A custom initialization handler to run before rendering the children.
    * You can use this to run database migrations or other setup tasks.
    */
-  onInit?: (context: OnInitMethods) => Promise<void>;
+  onInit?: (context: {
+    executeQuery: typeof executeQuery;
+    executePragmaQuery: typeof executePragmaQuery;
+    executeStatement: typeof executeStatement;
+  }) => Promise<void>;
 
   /**
    * Handle errors from ExpoSpatialiteProvider.
@@ -112,7 +107,6 @@ const ExpoSpatialiteContext = createContext<{
   executeQuery: typeof executeQuery;
   executeStatement: typeof executeStatement;
   executePragmaQuery: typeof executePragmaQuery;
-  executeTransaction: typeof ExpoSpatialiteModule.executeStatement;
   resetDatabase: (assetSource?: ExpoSpatialiteProviderAssetSource) => Promise<void>;
 } | null>(null);
 
@@ -195,13 +189,7 @@ function ExpoSpatialiteProviderSuspense({
   // This is a simplified version - you might want to implement proper Suspense logic
   return (
     <ExpoSpatialiteContext.Provider
-      value={{
-        executeQuery,
-        executeStatement,
-        executePragmaQuery,
-        executeTransaction: ExpoSpatialiteModule.executeStatement,
-        resetDatabase: () => Promise.resolve(),
-      }}>
+      value={{ executeQuery, executeStatement, executePragmaQuery, resetDatabase: () => Promise.resolve() }}>
       {children}
     </ExpoSpatialiteContext.Provider>
   );
@@ -270,30 +258,18 @@ function ExpoSpatialiteProviderNonSuspense({
   }
 
   const handleResetDatabase = async (newAssetSource?: ExpoSpatialiteProviderAssetSource) => {
-    const assetPath = newAssetSource?.assetId
-      ? (await Asset.fromModule(newAssetSource.assetId).downloadAsync()).localUri?.replace(
-          "file://",
-          ""
-        )
-      : assetSource?.assetId
-      ? (await Asset.fromModule(assetSource.assetId).downloadAsync()).localUri?.replace(
-          "file://",
-          ""
-        )
-      : undefined;
-
+    const assetPath = newAssetSource?.assetId ? 
+      (await Asset.fromModule(newAssetSource.assetId).downloadAsync()).localUri?.replace("file://", "") : 
+      (assetSource?.assetId ? 
+        (await Asset.fromModule(assetSource.assetId).downloadAsync()).localUri?.replace("file://", "") : 
+        undefined);
+    
     await resetDatabase(databaseName, assetPath);
   };
 
   return (
     <ExpoSpatialiteContext.Provider
-      value={{
-        executeQuery,
-        executeStatement,
-        executePragmaQuery,
-        executeTransaction: ExpoSpatialiteModule.executeStatement,
-        resetDatabase: handleResetDatabase,
-      }}>
+      value={{ executeQuery, executeStatement, executePragmaQuery, resetDatabase: handleResetDatabase }}>
       {children}
     </ExpoSpatialiteContext.Provider>
   );
@@ -306,10 +282,7 @@ async function setupDatabaseAsync({
   forceOverwrite = false,
   checkTableName,
   onInit,
-}: Pick<
-  ExpoSpatialiteProviderProps,
-  "databaseName" | "location" | "assetSource" | "onInit" | "checkTableName"
-> & {
+}: Pick<ExpoSpatialiteProviderProps, "databaseName" | "location" | "assetSource" | "onInit" | "checkTableName"> & {
   forceOverwrite?: boolean;
 }): Promise<string> {
   // Handle in-memory database
@@ -319,13 +292,7 @@ async function setupDatabaseAsync({
     } else {
       const result = await smartInitDatabase(":memory:");
       if (onInit != null) {
-        await onInit({
-          executeQuery,
-          executeStatement,
-          executePragmaQuery,
-          executeTransaction: ExpoSpatialiteModule.executeTransaction,
-          executeRawQuery: ExpoSpatialiteModule.executeRawQuery,
-        });
+        await onInit({ executeQuery, executeStatement, executePragmaQuery });
       }
       return result.path || ":memory:";
     }
@@ -339,7 +306,12 @@ async function setupDatabaseAsync({
   }
 
   // Use smart initialization
-  const result = await smartInitDatabase(databaseName, assetPath, checkTableName, forceOverwrite);
+  const result = await smartInitDatabase(
+    databaseName,
+    assetPath,
+    checkTableName,
+    forceOverwrite
+  );
 
   if (!result.success) {
     throw new Error("Failed to initialize database");
@@ -347,13 +319,7 @@ async function setupDatabaseAsync({
 
   // Run initialization hook if provided
   if (onInit != null) {
-    await onInit({
-      executeQuery,
-      executeStatement,
-      executePragmaQuery,
-      executeTransaction: ExpoSpatialiteModule.executeTransaction,
-      executeRawQuery: ExpoSpatialiteModule.executeRawQuery,
-    });
+    await onInit({ executeQuery, executeStatement, executePragmaQuery });
   }
 
   return result.path || databaseName;

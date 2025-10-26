@@ -1,6 +1,7 @@
+import { RestingIcon } from "@/components/shared/svg/Resting";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { Surface, Text, useTheme } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,7 +9,6 @@ import Animated, {
   withSequence,
   withTiming
 } from "react-native-reanimated";
-import { RestingIcon } from "@/components/shared/svg/Resting";
 
 interface NoDataScreenProps {
   listName?: string;
@@ -47,7 +47,7 @@ export function NoDataScreen({
       -1,
       false
     );
-  }, []);
+  }, [fadeValue, scaleValue]);
 
   const animatedIconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scaleValue.value }],
@@ -95,8 +95,6 @@ export function NoDataScreen({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    height: "100%",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
@@ -112,7 +110,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: "center",
-    gap: 12,
+    gap: 2,
   },
   titleText: {
     fontWeight: "600",

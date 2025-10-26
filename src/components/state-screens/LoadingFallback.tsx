@@ -12,10 +12,12 @@ import Animated, {
 import { LoadingIndicatorDots } from "./LoadingIndicatorDots";
 import { AppLogoSvg } from "@/components/shared/svg/AppLogoSvg";
 interface LoadingFallbackProps {
+  action?:React.ReactNode
   initialScreen?: boolean;
-  logoSize?:number
+  logoSize?:number;
+
 }
-export function LoadingFallback({ initialScreen,logoSize=250 }: LoadingFallbackProps) {
+export function LoadingFallback({ initialScreen,logoSize=250,action }: LoadingFallbackProps) {
   const { colors } = useTheme();
   const pulseValue = useSharedValue(1);
   const fadeValue = useSharedValue(0.6);
@@ -45,7 +47,7 @@ export function LoadingFallback({ initialScreen,logoSize=250 }: LoadingFallbackP
   }));
 
   return (
-    <Surface style={[styles.container, { backgroundColor: colors.surface }]}>
+    <Surface style={[styles.container, { backgroundColor: colors.surface }]} testID="loading-fallback">
       <View style={styles.content}>
         <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
           <AppLogoSvg width={logoSize} height={logoSize}/>
@@ -64,6 +66,12 @@ export function LoadingFallback({ initialScreen,logoSize=250 }: LoadingFallbackP
             </Animated.View>
           )}
         </View>
+        
+        {action && (
+          <View style={styles.actionsContainer}>
+            {action}
+          </View>
+        )}
       </View>
     </Surface>
   );
@@ -76,7 +84,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    // padding: 24,
+    padding: 24,
   },
   content: {
     // alignItems: "center",
@@ -92,5 +100,9 @@ const styles = StyleSheet.create({
   loadingText: {
     textAlign: "center",
     fontStyle: "italic",
+  },
+  actionsContainer: {
+    marginTop: 32,
+    alignItems: "center",
   },
 });
