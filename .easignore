@@ -41,8 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
-
 *.apk
 *.aab
 .secrets
+
 google-services.json
+basestack-3447b-73b90801b7ae.json
