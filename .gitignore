@@ -42,7 +42,40 @@ app-example
 /ios
 /android
 
+# Android build artifacts
 *.apk
 *.aab
+*.aar
+*.so
+*.jar
+*.keystore
+*.jks
+
+# Android directories
+android/build/
+android/app/build/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+
+# Gradle
+.gradle/
+!/gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio
+*.iml
+*.iws
+*.idea/
+.idea/
+
+# Android cache folders
+captures/
+*.hprof
+
+# Android native build
+obj/
+.libs/
+
 .secrets
 google-services.json
