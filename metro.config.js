@@ -6,6 +6,7 @@ const config = getDefaultConfig(__dirname);
 
 config.resolver.sourceExts.push('sql');
 config.transformer={
+    ...config.transformer,
     getTransformOptions: async () => ({
         transform: {
             inlineRequires: {

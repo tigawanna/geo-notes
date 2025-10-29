@@ -1,1 +1,7 @@
 nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - esbuild
+  - react-native-mmkv
+  - react-native-nitro-modules
+  - unrs-resolver
