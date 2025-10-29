@@ -3,7 +3,8 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      ["inline-import", { "extensions": [".sql", ".geo", ".geojson"] }]
+      ["inline-import", { "extensions": [".sql", ".geo", ".geojson"] }],
+      '@babel/plugin-transform-async-generator-functions'
     ],
     env: {
       production: {
