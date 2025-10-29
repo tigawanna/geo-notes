@@ -1,13 +1,13 @@
-import { ExpoSpatialiteDrizzle } from "@/modules/expo-spatialite";
-import { drizzle } from 'drizzle-orm/sqlite-proxy';
-import * as schema  from './schema';
+import { drizzle } from "drizzle-orm/op-sqlite";
+import * as schema from "./schema/tables";
+import { open } from "@op-engineering/op-sqlite";
 
-const spatialiteAdapter = new ExpoSpatialiteDrizzle();
-
-export const db = drizzle(spatialiteAdapter.driver,{
-    schema,
-    logger: true
+const opsqliteDb = open({
+  name: "myDB",
 });
-
-
-
+const path = "libspatialite";
+opsqliteDb.loadExtension(path, "sqlite3_modspatialite_init");
+export const db = drizzle(opsqliteDb, {
+  logger: true,
+  schema: schema,
+});

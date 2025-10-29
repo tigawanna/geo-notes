@@ -32,8 +32,9 @@ const getPlugins = (idt: UniqueIDT) => {
   const plugins: ConfigContext["config"]["plugins"] = [
     "expo-router",
     "expo-background-task",
-    "@react-native-firebase/app",
-    "@react-native-firebase/crashlytics",
+    "./plugins/opsqlite-spatialite/with-spatialite",
+    // "@react-native-firebase/app",
+    // "@react-native-firebase/crashlytics",
     [
       "expo-splash-screen",
       {
@@ -97,7 +98,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         foregroundImage: "./assets/icons/adaptive-icon.png",
         monochromeImage: "./assets/icons/adaptive-icon.png",
       },
-      googleServicesFile: "./google-services.json",
+      // googleServicesFile: "./google-services.json",
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: appIdentifier,
@@ -117,7 +118,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     extra: {
       router: {},
       eas: {
-        projectId: "1a86699d-ff50-44d3-ae2f-52732cabd5b5",
+        projectId: "7236754d-2f0f-409d-948f-970fb269d990",
       },
     },
   };

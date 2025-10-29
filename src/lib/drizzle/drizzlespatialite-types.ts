@@ -4,39 +4,19 @@ import { customType } from "drizzle-orm/sqlite-core";
 /**
  * SpatiaLite Geometry Types for Drizzle ORM
  *
- * IMPORTANT: When querying geometry columns for React Native/MapLibre usage,
- * always convert BLOB geometry to GeoJSON using AsGeoJSON():
- *
- * ✅ CORRECT:
- * SELECT AsGeoJSON(geom) AS geom FROM table_name
- *
- * ❌ WRONG:
- * SELECT geom FROM table_name  -- Returns binary WKB data
- *
- * WHY: BLOB type in Drizzle assumes Node.js Buffer existence, which is not
- * available in React Native. Raw BLOB queries will fail or return unusable data.
- * AsGeoJSON() converts the binary WKB to a JSON string that works everywhere.
- *
- * Example query:
- * const result = db.prepare(`
- *   SELECT id, name, AsGeoJSON(geom) AS geom
- *   FROM kenya_wards
- *   WHERE id = ?
- * `).get(wardId);
- *
- * Then parse the GeoJSON string:
- * const geometry = JSON.parse(result.geom);
+ * All types use direct GeoJSON conversion without ST_MakeValid
+ * since valid GeoJSON input should create valid geometries.
  */
 
-// Point geometry type
+// Point geometry type - already fixed
 export const point = customType<{
   data: string; // GeoJSON string or "POINT(lng lat)"
 }>({
   dataType() {
-    return "blob"; // SpatiaLite stores all geometries as WKB in BLOB
+    return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`;
   },
 });
 
@@ -48,7 +28,7 @@ export const multiPoint = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
 
@@ -60,7 +40,7 @@ export const lineString = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
 
@@ -72,7 +52,7 @@ export const multiLineString = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
 
@@ -84,7 +64,7 @@ export const polygon = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
 
@@ -96,7 +76,7 @@ export const multiPolygon = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
 
@@ -108,7 +88,7 @@ export const geometry = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
 
@@ -120,6 +100,6 @@ export const geometryCollection = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`ST_MakeValid(GeomFromGeoJSON(${value}))`;
+    return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
   },
 });
