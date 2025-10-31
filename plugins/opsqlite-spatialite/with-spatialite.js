@@ -6,10 +6,10 @@ function copySpatialiteSoFiles() {
   const sourceBase = path.join(__dirname, "spatialite-libs", "jni");
   const targetBase = path.join(process.cwd(), "android", "app", "src", "main", "jniLibs");
 
-  console.log("📦 Setting up Spatialite native libraries...");
+  // console.log("📦 Setting up Spatialite native libraries...");
 
   if (!fs.existsSync(sourceBase)) {
-    console.warn("⚠️  Spatialite libraries not found. Run extraction script first.");
+    // console.warn("⚠️  Spatialite libraries not found. Run extraction script first.");
     return;
   }
 
@@ -30,13 +30,13 @@ function copySpatialiteSoFiles() {
       for (const file of files) {
         if (file.endsWith(".so")) {
           fs.copyFileSync(path.join(sourceDir, file), path.join(targetDir, file));
-          console.log(`✓ ${arch}/${file}`);
+          // console.log(`✓ ${arch}/${file}`);
         }
       }
     }
   }
 
-  console.log("✅ Spatialite native libraries ready!\n");
+  // console.log("✅ Spatialite native libraries ready!\n");
 }
 
 // Expo config plugin
