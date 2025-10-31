@@ -32,9 +32,10 @@ const getPlugins = (idt: UniqueIDT) => {
   const plugins: ConfigContext["config"]["plugins"] = [
     "expo-router",
     "expo-background-task",
-    "./plugins/opsqlite-spatialite/with-spatialite",
+    "expo-secure-store",
     "@react-native-firebase/app",
     // "@react-native-firebase/crashlytics",
+    "./plugins/opsqlite-spatialite/with-spatialite",
     [
       "expo-splash-screen",
       {
