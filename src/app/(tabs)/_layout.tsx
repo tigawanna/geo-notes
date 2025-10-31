@@ -4,11 +4,11 @@ import { HapticTab } from "@/components/default/haptic-tab";
 import { MaterialCommunityIcon, MaterialIcon } from "@/components/default/ui/icon-symbol";
 import { Platform } from "react-native";
 import { useTheme } from "react-native-paper";
-import { useDeviceLocation } from "@/hooks/use-device-location";
+// import { useDeviceLocation } from "@/hooks/use-device-location";
 
 export default function TabLayout() {
   const { colors } = useTheme();
-  useDeviceLocation();
+  // useDeviceLocation();
   return (
     <Tabs
       screenOptions={{
