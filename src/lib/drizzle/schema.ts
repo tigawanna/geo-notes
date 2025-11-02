@@ -1,8 +1,10 @@
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { sql } from "drizzle-orm/sql";
 import * as t from "drizzle-orm/sqlite-core";
 import { sqliteTable as table } from "drizzle-orm/sqlite-core";
-import { point } from "./drizzlespatialite-types";
 import * as Crypto from "expo-crypto";
+import { point } from "./drizzlespatialite-types";
+import { createInsertSchema } from "drizzle-zod";
 
 export const notes = table(
   "notes",
@@ -22,3 +24,6 @@ export const notes = table(
   ]
 );
 
+export type TNote = InferSelectModel<typeof notes>;
+export type TInsertNote = InferInsertModel<typeof notes>;
+export const InsertNoteZodSchema = createInsertSchema(notes)
