@@ -12,21 +12,23 @@ import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
   ActivityIndicator,
-  Button,
   Card,
   Chip,
   FAB,
+  IconButton,
   Searchbar,
   Text,
   useTheme,
 } from "react-native-paper";
-
-
+import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
+
+type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distance-desc";
 
 interface NoteWithDistance extends TNote {
   latitude: string;
@@ -38,48 +40,116 @@ interface NotesScaffoldProps {
   children: React.ReactNode;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  sortByDistance: boolean;
-  setSortByDistance: (sort: boolean) => void;
-  notesCount?: number;
+  sortOption: SortOption;
+  setSortOption: (sort: SortOption) => void;
 }
 
 function NotesScaffold({
   children,
   searchQuery,
   setSearchQuery,
-  sortByDistance,
-  setSortByDistance,
-  notesCount,
+  sortOption,
+  setSortOption,
 }: NotesScaffoldProps) {
   const { colors } = useTheme();
+  const [sortMenuVisible, setSortMenuVisible] = useState(false);
+
+  const openMenu = () => {
+    setSortMenuVisible(true);
+  };
+  const closeMenu = () => setSortMenuVisible(false);
+
+  const handleSortSelect = (newSort: SortOption) => {
+    setSortOption(newSort);
+    closeMenu();
+  };
 
   return (
     <View style={styles.scaffoldContainer}>
-      <View style={styles.header}>
-        <Text variant="titleLarge">Notes {notesCount !== undefined ? `(${notesCount})` : ""}</Text>
-        <Button
-          mode={sortByDistance ? "contained" : "outlined"}
-          onPress={() => setSortByDistance(!sortByDistance)}
-          compact>
-          {sortByDistance ? "Distance" : "Recent"}
-        </Button>
+      <View style={styles.searchRow}>
+        <Searchbar
+          placeholder="Search notes"
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchBar}
+          inputStyle={styles.searchInput}
+          iconColor={colors.onSurfaceVariant}
+          placeholderTextColor={colors.onSurfaceVariant}
+        />
+        <Menu
+          visible={sortMenuVisible}
+          onRequestClose={closeMenu}
+          style={{
+            top: "10%",
+            backgroundColor: colors.surface,
+          }}
+          anchor={<IconButton icon="sort" onPress={openMenu} size={24} />}>
+          <MenuItem
+            onPress={() => handleSortSelect("recent-desc")}
+            textStyle={sortOption === "recent-desc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            pressColor={colors.primaryContainer}>
+            {sortOption === "recent-desc" && (
+              <MaterialCommunityIcon
+                name="check"
+                color={colors.primary}
+                style={{ marginRight: 8 }}
+                size={18}
+              />
+            )}
+            Recent (Newest)
+          </MenuItem>
+          <MenuItem
+            onPress={() => handleSortSelect("recent-asc")}
+            textStyle={sortOption === "recent-asc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            pressColor={colors.primaryContainer}>
+            {sortOption === "recent-asc" && (
+              <MaterialCommunityIcon
+                name="check"
+                color={colors.primary}
+                style={{ marginRight: 8 }}
+                size={18}
+              />
+            )}
+            Recent (Oldest)
+          </MenuItem>
+          <MenuDivider />
+          <MenuItem
+            onPress={() => handleSortSelect("distance-asc")}
+            textStyle={sortOption === "distance-asc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            pressColor={colors.primaryContainer}>
+            {sortOption === "distance-asc" && (
+              <MaterialCommunityIcon
+                name="check"
+                color={colors.primary}
+                style={{ marginRight: 8 }}
+                size={18}
+              />
+            )}
+            Distance (Closest)
+          </MenuItem>
+          <MenuItem
+            onPress={() => handleSortSelect("distance-desc")}
+            textStyle={sortOption === "distance-desc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            pressColor={colors.primaryContainer}>
+            {sortOption === "distance-desc" && (
+              <MaterialCommunityIcon
+                name="check"
+                color={colors.primary}
+                style={{ marginRight: 8 }}
+                size={18}
+              />
+            )}
+            Distance (Farthest)
+          </MenuItem>
+        </Menu>
       </View>
-      <Searchbar
-        placeholder="Search notes"
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        style={styles.searchBar}
-        inputStyle={styles.searchInput}
-        iconColor={colors.onSurfaceVariant}
-        placeholderTextColor={colors.onSurfaceVariant}
-      />
       {children}
     </View>
   );
 }
 
 export function Notes() {
-  const [sortByDistance, setSortByDistance] = useState(true);
+  const [sortOption, setSortOption] = useState<SortOption>("distance-asc");
   const [searchQuery, setSearchQuery] = useState("");
   const { location } = useDeviceLocation();
   const { locationEnabled } = useSettingsStore();
@@ -91,7 +161,7 @@ export function Notes() {
     error: queryError,
     refetch,
     isRefetching,
-  } = useQuery(getNotesQueryOptions(sortByDistance));
+  } = useQuery(getNotesQueryOptions(sortOption));
 
   const createNoteMutation = useMutation({
     ...createNotesMutationOptions,
@@ -160,7 +230,6 @@ export function Notes() {
   }, [notes]);
 
   const renderNoteCard = (item: NoteWithDistance) => {
-
     const handleLongPress = async () => {
       if (item.quickCopy) {
         await Clipboard.setStringAsync(item.quickCopy);
@@ -171,8 +240,7 @@ export function Notes() {
     return (
       <Pressable
         onPress={() => router.push(`/note/edit?id=${item.id}` as any)}
-        onLongPress={handleLongPress}
-      >
+        onLongPress={handleLongPress}>
         <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated">
           <Card.Content>
             <Text variant="titleMedium" numberOfLines={2}>
@@ -197,7 +265,8 @@ export function Notes() {
               </Text>
               {item.updated && (
                 <Text variant="bodySmall" style={styles.updatedAt}>
-                  Updated: {new Date(item.updated).toLocaleDateString()} {new Date(item.updated).toLocaleTimeString()}
+                  Updated: {new Date(item.updated).toLocaleDateString()}{" "}
+                  {new Date(item.updated).toLocaleTimeString()}
                 </Text>
               )}
             </View>
@@ -230,8 +299,8 @@ export function Notes() {
       <NotesScaffold
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        sortByDistance={sortByDistance}
-        setSortByDistance={setSortByDistance}>
+        sortOption={sortOption}
+        setSortOption={setSortOption}>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" />
           <Text variant="bodyMedium" style={styles.loadingText}>
@@ -247,8 +316,8 @@ export function Notes() {
       <NotesScaffold
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        sortByDistance={sortByDistance}
-        setSortByDistance={setSortByDistance}>
+        sortOption={sortOption}
+        setSortOption={setSortOption}>
         <View style={styles.centerContainer}>
           <Text variant="titleMedium" style={styles.errorText}>
             Error loading notes
@@ -264,8 +333,8 @@ export function Notes() {
       <NotesScaffold
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        sortByDistance={sortByDistance}
-        setSortByDistance={setSortByDistance}>
+        sortOption={sortOption}
+        setSortOption={setSortOption}>
         <View style={styles.centerContainer}>
           <Text variant="titleLarge">No notes yet</Text>
           <Text variant="bodyMedium" style={styles.emptyText}>
@@ -288,10 +357,9 @@ export function Notes() {
     <NotesScaffold
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
-      sortByDistance={sortByDistance}
-      setSortByDistance={setSortByDistance}
-      notesCount={notes.length}>
-      <ScrollView 
+      sortOption={sortOption}
+      setSortOption={setSortOption}>
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
@@ -300,8 +368,7 @@ export function Notes() {
             colors={[theme.colors.primary]}
             tintColor={theme.colors.primary}
           />
-        }
-      >
+        }>
         <View style={styles.masonryContainer}>
           {renderColumn(masonryColumns[0], 0)}
           {renderColumn(masonryColumns[1], 1)}
@@ -328,12 +395,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  header: {
+  searchRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
-    paddingBottom: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
   },
   scrollContent: {
     flexGrow: 1,
@@ -395,8 +461,7 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     elevation: 0,
-    marginHorizontal: 16,
-    marginBottom: 8,
+    flex: 1,
   },
   searchInput: {
     fontSize: 16,
