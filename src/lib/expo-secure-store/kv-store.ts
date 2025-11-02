@@ -1,6 +1,6 @@
 import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
 
-export class KVStorage {
+export class SecureKVStorage {
   async getItem(key: string): Promise<string | null> {
     try {
       const session = await getItemAsync(key);
