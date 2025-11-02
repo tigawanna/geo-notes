@@ -1,7 +1,8 @@
-import { View, StyleSheet } from "react-native";
-import { Text } from "react-native-paper";
-import { useMigrations } from "drizzle-orm/op-sqlite/migrator";
+import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import migrations from "@/drizzle/migrations";
+import { useMigrations } from "drizzle-orm/op-sqlite/migrator";
+import { View } from "react-native";
+import { Text } from "react-native-paper";
 import { db } from "./client";
 
 interface InitDatabaseProps {
@@ -17,12 +18,7 @@ export function InitDatabase({ children }: InitDatabaseProps) {
     );
   }
   if (!success) {
-    return (
-      <View>
-        <Text>Migration is in progress...</Text>
-      </View>
-    );
+    return <LoadingFallback />;
   }
   return children;
 }
-const styles = StyleSheet.create({});
