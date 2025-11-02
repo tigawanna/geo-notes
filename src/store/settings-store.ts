@@ -1,10 +1,10 @@
 // import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { CustomThemeKey } from "@/constants/Colors";
 import { useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
+import { createMMKV } from "react-native-mmkv";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { CustomThemeKey } from "@/constants/Colors";
-import { createMMKV } from "react-native-mmkv";
 
 export const mmkvStorage = createMMKV();
 
@@ -14,24 +14,30 @@ type SettingsStoreType = {
   localBackupPath: string | null;
   dynamicColors: boolean;
   lastBackup: Date | null;
+  locationEnabled: boolean;
+  quickCopyMode: "title" | "phone" | "manual";
 
   // Actions
   toggleDynamicColors: () => void;
   toggleTheme: () => void;
+  toggleLocationEnabled: () => void;
   setTheme: (theme: "dark" | "light" | null) => void;
   setColorScheme: (scheme: CustomThemeKey | null) => void;
   setLocalBackupPath: (path: string | null) => void;
   setLastBackup: (date: Date | null) => void;
+  setQuickCopyMode: (mode: "title" | "phone" | "manual") => void;
   updateSettings: (
     settings: Partial<
       Omit<
         SettingsStoreType,
         | "toggleDynamicColors"
         | "toggleTheme"
+        | "toggleLocationEnabled"
         | "setTheme"
         | "setColorScheme"
         | "setLocalBackupPath"
         | "setLastBackup"
+        | "setQuickCopyMode"
         | "updateSettings"
       >
     >
@@ -47,6 +53,8 @@ export const useSettingsStore = create<SettingsStoreType>()(
       localBackupPath: null,
       dynamicColors: true,
       lastBackup: null,
+      locationEnabled: true,
+      quickCopyMode: "manual",
 
       // Actions
       toggleDynamicColors: () =>
@@ -60,6 +68,11 @@ export const useSettingsStore = create<SettingsStoreType>()(
           theme: state.theme === "light" ? "dark" : "light",
         })),
 
+      toggleLocationEnabled: () =>
+        set((state) => ({
+          locationEnabled: !state.locationEnabled,
+        })),
+
       setTheme: (theme) => set({ theme }),
 
       setColorScheme: (scheme) =>
@@ -71,6 +84,8 @@ export const useSettingsStore = create<SettingsStoreType>()(
       setLocalBackupPath: (path) => set({ localBackupPath: path }),
 
       setLastBackup: (date) => set({ lastBackup: date }),
+
+      setQuickCopyMode: (mode) => set({ quickCopyMode: mode }),
 
       updateSettings: (settings) => set((state) => ({ ...state, ...settings })),
     }),
@@ -100,6 +115,8 @@ export const useSettingsStore = create<SettingsStoreType>()(
         localBackupPath: state.localBackupPath,
         dynamicColors: state.dynamicColors,
         lastBackup: state.lastBackup,
+        locationEnabled: state.locationEnabled,
+        quickCopyMode: state.quickCopyMode,
       }),
     }
   )

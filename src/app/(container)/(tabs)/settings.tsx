@@ -1,13 +1,22 @@
 import { customTheme, type CustomThemeKey } from "@/constants/Colors";
 import { useSettingsStore, useThemeStore } from "@/store/settings-store";
+import * as Application from "expo-application";
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Icon, List, Surface, Switch, useTheme } from "react-native-paper";
-import * as Application from "expo-application";
 
 export default function Settings() {
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useThemeStore();
-  const { dynamicColors, toggleDynamicColors, colorScheme, setColorScheme } = useSettingsStore();
+  const {
+    dynamicColors,
+    toggleDynamicColors,
+    colorScheme,
+    setColorScheme,
+    locationEnabled,
+    toggleLocationEnabled,
+    quickCopyMode,
+    setQuickCopyMode,
+  } = useSettingsStore();
   const developerFacingBuildVersion = Application.nativeBuildVersion;
 
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
@@ -63,6 +72,34 @@ export default function Settings() {
               </TouchableOpacity>
             ))}
           </View>
+          <Divider />
+        </List.Section>
+
+        <List.Section>
+          <List.Subheader style={[styles.listSubHeader]}>Notes Settings</List.Subheader>
+          <List.Item
+            title="Location Tracking"
+            description="Automatically save location with notes"
+            left={(props) => <List.Icon {...props} icon="map-marker" />}
+            right={() => <Switch value={locationEnabled} onValueChange={toggleLocationEnabled} />}
+          />
+          <List.Item
+            title="Quick Copy Mode"
+            description={
+              quickCopyMode === "title"
+                ? "Auto-copy note title"
+                : quickCopyMode === "phone"
+                  ? "Auto-detect phone numbers"
+                  : "Manual input"
+            }
+            left={(props) => <List.Icon {...props} icon="content-copy" />}
+            onPress={() => {
+              const modes: ("title" | "phone" | "manual")[] = ["manual", "title", "phone"];
+              const currentIndex = modes.indexOf(quickCopyMode);
+              const nextMode = modes[(currentIndex + 1) % modes.length];
+              setQuickCopyMode(nextMode);
+            }}
+          />
           <Divider />
         </List.Section>
 

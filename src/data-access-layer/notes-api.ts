@@ -1,6 +1,7 @@
 import { db } from "@/lib/drizzle/client";
-import { notes, TInsertNote } from "@/lib/drizzle/schema";
-import { getTableColumns, sql } from "drizzle-orm";
+import { notes, TInsertNote, TNote } from "@/lib/drizzle/schema";
+import { eq, getTableColumns, sql } from "drizzle-orm";
+import * as Crypto from "expo-crypto";
 
 export async function getNotes(sortByDistance = true) {
   try {
@@ -48,10 +49,14 @@ export async function getNotes(sortByDistance = true) {
 
 export async function createNote(newNote: TInsertNote) {
   try {
-    const res = await db.insert(notes).values(newNote);
+    const noteWithId = {
+      ...newNote,
+      id: newNote.id || Crypto.randomUUID(),
+    };
+    const res = await db.insert(notes).values(noteWithId);
     console.log("Created note:", res);
     return {
-      result: res,
+      result: noteWithId.id, // Return the ID of the created note
       error: null,
     };
   } catch (error) {
@@ -87,6 +92,46 @@ export async function deleteNote(id: number) {
     return { result: res, error: null };
   } catch (error) {
     console.error("Error deleting note with id:", id, error);
+    return {
+      result: null,
+      error: error instanceof Error ? error.message : JSON.stringify(error),
+    };
+  }
+}
+
+export async function getNote(id: string) {
+  try {
+    const res = await db.select().from(notes).where(eq(notes.id, id)).limit(1);
+    console.log("Fetched note with id:", id);
+    return {
+      result: res[0] || null,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Error fetching note with id:", id, error);
+    return {
+      result: null,
+      error: error instanceof Error ? error.message : JSON.stringify(error),
+    };
+  }
+}
+
+export async function updateNote(id: string, updates: Partial<TNote>) {
+  try {
+    const res = await db
+      .update(notes)
+      .set({
+        ...updates,
+        updated: new Date().toISOString(),
+      })
+      .where(eq(notes.id, id));
+    console.log("Updated note with id:", id);
+    return {
+      result: res,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Error updating note with id:", id, error);
     return {
       result: null,
       error: error instanceof Error ? error.message : JSON.stringify(error),
