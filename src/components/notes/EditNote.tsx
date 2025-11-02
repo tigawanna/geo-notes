@@ -11,7 +11,6 @@ import {
     Appbar,
     Button,
     IconButton,
-    Surface,
     Text,
     TextInput,
     useTheme,
@@ -107,20 +106,20 @@ export function EditNote() {
 
   if (isPending) {
     return (
-      <Surface style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" />
           <Text variant="bodyMedium" style={styles.loadingText}>
             Loading note...
           </Text>
         </View>
-      </Surface>
+      </View>
     );
   }
 
   if (queryError || !note) {
     return (
-      <Surface style={styles.container}>
+      <View style={styles.container}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title="Error" />
@@ -133,12 +132,12 @@ export function EditNote() {
             Go Back
           </Button>
         </View>
-      </Surface>
+      </View>
     );
   }
 
   return (
-    <Surface style={styles.container}>
+    <View style={styles.container}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title="Edit Note" />
@@ -254,7 +253,7 @@ export function EditNote() {
           <Text variant="bodyLarge">Saving...</Text>
         </View>
       )}
-    </Surface>
+    </View>
   );
 }
 
