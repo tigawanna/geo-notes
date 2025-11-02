@@ -1,14 +1,7 @@
 import { Stack } from "expo-router";
 
 export default function ContainerLayout() {
-
- // Listen for changes to authentication state
- // if (isPending) {
-  //   return <LoadingFallback />;
-  // }
-
-  const isAuthenticated = true
-
+  const isAuthenticated = true;
   return (
     <Stack>
       <Stack.Protected guard={isAuthenticated}>

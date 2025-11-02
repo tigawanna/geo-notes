@@ -1,5 +1,5 @@
 import { Notes } from "@/components/notes/Notes";
-import { Surface, Text } from "react-native-paper";
+import { Surface } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
