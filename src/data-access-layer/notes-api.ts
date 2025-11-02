@@ -23,11 +23,17 @@ export async function getNotes(sortByDistance = true) {
         ),
       })
       .from(notes);
+    
     if (sortByDistance) {
-      // Sort by distance ascending (closest to Nairobi first)
-      // .orderBy(sql`distance_km ASC`);
+      // Sort by distance first (closest to Nairobi), then by updated timestamp descending
+      // This ensures notes at the same location show most recent first
       query.orderBy(sql`distance_km ASC`);
+      query.orderBy(sql`updated DESC`);
+    } else {
+      // Sort only by updated timestamp descending (most recent first)
+      query.orderBy(sql`updated DESC`);
     }
+    
     // Execute spatial query to fetch notes with distance calculations
     const res = await query;
 

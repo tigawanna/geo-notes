@@ -4,12 +4,14 @@ import {
 } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import type { TNote } from "@/lib/drizzle/schema";
+import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
 import { useSettingsStore } from "@/store/settings-store";
 import { FlashList } from "@shopify/flash-list";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
   Button,
@@ -20,6 +22,8 @@ import {
   Text,
   useTheme,
 } from "react-native-paper";
+
+
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -34,8 +38,8 @@ interface NotesScaffoldProps {
   children: React.ReactNode;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  sortBy: "distance" | "title";
-  setSortBy: (sort: "distance" | "title") => void;
+  sortByDistance: boolean;
+  setSortByDistance: (sort: boolean) => void;
   notesCount?: number;
 }
 
@@ -43,8 +47,8 @@ function NotesScaffold({
   children,
   searchQuery,
   setSearchQuery,
-  sortBy,
-  setSortBy,
+  sortByDistance,
+  setSortByDistance,
   notesCount,
 }: NotesScaffoldProps) {
   const { colors } = useTheme();
@@ -54,10 +58,10 @@ function NotesScaffold({
       <View style={styles.header}>
         <Text variant="titleLarge">Notes {notesCount !== undefined ? `(${notesCount})` : ""}</Text>
         <Button
-          mode={sortBy === "distance" ? "contained" : "outlined"}
-          onPress={() => setSortBy(sortBy === "distance" ? "title" : "distance")}
+          mode={sortByDistance ? "contained" : "outlined"}
+          onPress={() => setSortByDistance(!sortByDistance)}
           compact>
-          Sort by {sortBy === "distance" ? "Distance" : "Title"}
+          {sortByDistance ? "Distance" : "Recent"}
         </Button>
       </View>
       <Searchbar
@@ -75,17 +79,19 @@ function NotesScaffold({
 }
 
 export function Notes() {
-  const [sortBy, setSortBy] = useState<"distance" | "title">("distance");
+  const [sortByDistance, setSortByDistance] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { location } = useDeviceLocation();
   const { locationEnabled } = useSettingsStore();
   const theme = useTheme();
-
+  const { showSnackbar } = useSnackbar();
   const {
     data,
     isPending,
     error: queryError,
-  } = useQuery(getNotesQueryOptions(sortBy === "distance"));
+    refetch,
+    isRefetching,
+  } = useQuery(getNotesQueryOptions(sortByDistance));
 
   const createNoteMutation = useMutation({
     ...createNotesMutationOptions,
@@ -154,8 +160,19 @@ export function Notes() {
   }, [notes]);
 
   const renderNoteCard = (item: NoteWithDistance) => {
+
+    const handleLongPress = async () => {
+      if (item.quickCopy) {
+        await Clipboard.setStringAsync(item.quickCopy);
+        showSnackbar(`"${item.quickCopy}" has been copied to clipboard.`);
+      }
+    };
+
     return (
-      <Pressable onPress={() => router.push(`/note/edit?id=${item.id}` as any)}>
+      <Pressable
+        onPress={() => router.push(`/note/edit?id=${item.id}` as any)}
+        onLongPress={handleLongPress}
+      >
         <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated">
           <Card.Content>
             <Text variant="titleMedium" numberOfLines={2}>
@@ -178,6 +195,11 @@ export function Notes() {
               <Text variant="bodySmall" style={styles.coordinates}>
                 {Number(item.latitude).toFixed(4)}, {Number(item.longitude).toFixed(4)}
               </Text>
+              {item.updated && (
+                <Text variant="bodySmall" style={styles.updatedAt}>
+                  Updated: {new Date(item.updated).toLocaleDateString()} {new Date(item.updated).toLocaleTimeString()}
+                </Text>
+              )}
             </View>
           </Card.Content>
         </Card>
@@ -208,8 +230,8 @@ export function Notes() {
       <NotesScaffold
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        sortBy={sortBy}
-        setSortBy={setSortBy}>
+        sortByDistance={sortByDistance}
+        setSortByDistance={setSortByDistance}>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" />
           <Text variant="bodyMedium" style={styles.loadingText}>
@@ -225,8 +247,8 @@ export function Notes() {
       <NotesScaffold
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        sortBy={sortBy}
-        setSortBy={setSortBy}>
+        sortByDistance={sortByDistance}
+        setSortByDistance={setSortByDistance}>
         <View style={styles.centerContainer}>
           <Text variant="titleMedium" style={styles.errorText}>
             Error loading notes
@@ -242,8 +264,8 @@ export function Notes() {
       <NotesScaffold
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        sortBy={sortBy}
-        setSortBy={setSortBy}>
+        sortByDistance={sortByDistance}
+        setSortByDistance={setSortByDistance}>
         <View style={styles.centerContainer}>
           <Text variant="titleLarge">No notes yet</Text>
           <Text variant="bodyMedium" style={styles.emptyText}>
@@ -266,10 +288,20 @@ export function Notes() {
     <NotesScaffold
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
-      sortBy={sortBy}
-      setSortBy={setSortBy}
+      sortByDistance={sortByDistance}
+      setSortByDistance={setSortByDistance}
       notesCount={notes.length}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
+      >
         <View style={styles.masonryContainer}>
           {renderColumn(masonryColumns[0], 0)}
           {renderColumn(masonryColumns[1], 1)}
@@ -335,6 +367,10 @@ const styles = StyleSheet.create({
   coordinates: {
     opacity: 0.5,
     fontSize: 10,
+  },
+  updatedAt: {
+    opacity: 0.6,
+    fontSize: 9,
   },
   loadingText: {
     marginTop: 16,
