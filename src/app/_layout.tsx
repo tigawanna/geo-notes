@@ -30,40 +30,34 @@ export const unstable_settings = {
 // initializePushEventsBackgroundTask(initilializerPromise);
 // initializePullEventsBackgroundTask(initilializerPromise);
 
-export default function RootLayout() {
-  const { colorScheme } = useThemeSetup();
-  return (
-    <LayoutProviders>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-          <InitDatabase>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </InitDatabase>
-          <GlobalSnackbar />
-        </ThemeProvider>
-      </GestureHandlerRootView>
-    </LayoutProviders>
-  );
-}
+// useEffect(() => {
+// resolver?.();
+// comment out during dev because we're not setupfor a dev profile on firebase
+// registerCrashalytics();
+// }, []);
+// useRegisterCrashalytics();
 
-function LayoutProviders({ children }: { children: React.ReactNode }) {
+export default function RootLayout() {
   useOnlineManager();
   useAppState(onAppStateChange);
   const { colorScheme, paperTheme } = useThemeSetup();
-  // useEffect(() => {
-  // resolver?.();
-  // comment out during dev because we're not setupfor a dev profile on firebase
-  // registerCrashalytics();
-  // }, []);
-  // useRegisterCrashalytics();
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <PaperProvider theme={paperTheme}>{children}</PaperProvider>
+        <PaperProvider theme={paperTheme}>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+              <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+              <InitDatabase>
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </InitDatabase>
+              <GlobalSnackbar />
+            </ThemeProvider>
+          </GestureHandlerRootView>
+        </PaperProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
