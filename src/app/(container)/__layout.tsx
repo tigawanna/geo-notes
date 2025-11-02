@@ -7,7 +7,7 @@ export default function ContainerLayout() {
   //   return <LoadingFallback />;
   // }
 
-  const isAuthenticated = false
+  const isAuthenticated = true
 
   return (
     <Stack>
