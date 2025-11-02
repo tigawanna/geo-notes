@@ -1,4 +1,7 @@
-import { createNotesMutationOptions, getNotesQueryOptions } from "@/data-access-layer/notes-query-optons";
+import {
+  createNotesMutationOptions,
+  getNotesQueryOptions,
+} from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import type { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
@@ -7,7 +10,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Card, Chip, FAB, Text, useTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  Card,
+  Chip,
+  FAB,
+  Searchbar,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -18,9 +30,53 @@ interface NoteWithDistance extends TNote {
   distance: number;
 }
 
+interface NotesScaffoldProps {
+  children: React.ReactNode;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  sortBy: "distance" | "title";
+  setSortBy: (sort: "distance" | "title") => void;
+  notesCount?: number;
+}
+
+function NotesScaffold({
+  children,
+  searchQuery,
+  setSearchQuery,
+  sortBy,
+  setSortBy,
+  notesCount,
+}: NotesScaffoldProps) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={styles.scaffoldContainer}>
+      <View style={styles.header}>
+        <Text variant="titleLarge">Notes {notesCount !== undefined ? `(${notesCount})` : ""}</Text>
+        <Button
+          mode={sortBy === "distance" ? "contained" : "outlined"}
+          onPress={() => setSortBy(sortBy === "distance" ? "title" : "distance")}
+          compact>
+          Sort by {sortBy === "distance" ? "Distance" : "Title"}
+        </Button>
+      </View>
+      <Searchbar
+        placeholder="Search notes"
+        onChangeText={setSearchQuery}
+        value={searchQuery}
+        style={styles.searchBar}
+        inputStyle={styles.searchInput}
+        iconColor={colors.onSurfaceVariant}
+        placeholderTextColor={colors.onSurfaceVariant}
+      />
+      {children}
+    </View>
+  );
+}
+
 export function Notes() {
   const [sortBy, setSortBy] = useState<"distance" | "title">("distance");
-  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
   const { location } = useDeviceLocation();
   const { locationEnabled } = useSettingsStore();
   const theme = useTheme();
@@ -34,11 +90,12 @@ export function Notes() {
   const createNoteMutation = useMutation({
     ...createNotesMutationOptions,
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      // Navigate to edit screen with the newly created note ID
       if (result.result) {
         router.push(`/note/edit?id=${result.result}` as any);
       }
+    },
+    meta: {
+      invalidates: [["notes"]],
     },
   });
 
@@ -67,12 +124,24 @@ export function Notes() {
   };
 
   const notes = useMemo(() => {
-    return (data?.result || []) as NoteWithDistance[];
-  }, [data?.result]);
+    let filteredNotes = (data?.result || []) as NoteWithDistance[];
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredNotes = filteredNotes.filter(
+        (note) =>
+          note.title?.toLowerCase().includes(query) ||
+          note.content?.toLowerCase().includes(query) ||
+          note.quickCopy?.toLowerCase().includes(query)
+      );
+    }
+
+    return filteredNotes;
+  }, [data?.result, searchQuery]);
 
   const masonryColumns = useMemo(() => {
     if (!notes || notes.length === 0) return [[], []];
-    
+
     const columns: [NoteWithDistance[], NoteWithDistance[]] = [[], []];
 
     notes.forEach((note, index) => {
@@ -136,36 +205,52 @@ export function Notes() {
 
   if (isPending) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
-        <Text variant="bodyMedium" style={styles.loadingText}>
-          Loading notes...
-        </Text>
-      </View>
+      <NotesScaffold
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" />
+          <Text variant="bodyMedium" style={styles.loadingText}>
+            Loading notes...
+          </Text>
+        </View>
+      </NotesScaffold>
     );
   }
 
   if (queryError) {
     return (
-      <View style={styles.centerContainer}>
-        <Text variant="titleMedium" style={styles.errorText}>
-          Error loading notes
-        </Text>
-        <Text variant="bodyMedium">{queryError.message}</Text>
-      </View>
+      <NotesScaffold
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}>
+        <View style={styles.centerContainer}>
+          <Text variant="titleMedium" style={styles.errorText}>
+            Error loading notes
+          </Text>
+          <Text variant="bodyMedium">{queryError.message}</Text>
+        </View>
+      </NotesScaffold>
     );
   }
 
   if (!notes || notes.length === 0) {
     return (
-      <View style={styles.container}>
+      <NotesScaffold
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}>
         <View style={styles.centerContainer}>
           <Text variant="titleLarge">No notes yet</Text>
           <Text variant="bodyMedium" style={styles.emptyText}>
             Create your first geo-note!
           </Text>
         </View>
-        
+
         <FAB
           icon="plus"
           style={styles.fab}
@@ -173,29 +258,24 @@ export function Notes() {
           loading={createNoteMutation.isPending}
           label="New Note"
         />
-      </View>
+      </NotesScaffold>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant="titleLarge">Notes ({notes.length})</Text>
-        <Button
-          mode={sortBy === "distance" ? "contained" : "outlined"}
-          onPress={() => setSortBy(sortBy === "distance" ? "title" : "distance")}
-          compact
-        >
-          Sort by {sortBy === "distance" ? "Distance" : "Title"}
-        </Button>
-      </View>
+    <NotesScaffold
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      sortBy={sortBy}
+      setSortBy={setSortBy}
+      notesCount={notes.length}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.masonryContainer}>
           {renderColumn(masonryColumns[0], 0)}
           {renderColumn(masonryColumns[1], 1)}
         </View>
       </ScrollView>
-      
+
       <FAB
         icon="plus"
         style={styles.fab}
@@ -203,16 +283,11 @@ export function Notes() {
         loading={createNoteMutation.isPending}
         label="New Note"
       />
-    </View>
+    </NotesScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    height: "100%",
-    width: "100%",
-  },
   centerContainer: {
     flex: 1,
     height: "100%",
@@ -277,5 +352,17 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  scaffoldContainer: {
+    flex: 1,
+    width: "100%",
+  },
+  searchBar: {
+    elevation: 0,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  searchInput: {
+    fontSize: 16,
   },
 });
