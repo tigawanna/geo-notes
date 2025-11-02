@@ -31,6 +31,26 @@ export const unstable_settings = {
 // initializePullEventsBackgroundTask(initilializerPromise);
 
 export default function RootLayout() {
+  const { colorScheme } = useThemeSetup();
+  return (
+    <LayoutProviders>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+          <InitDatabase>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </InitDatabase>
+          <GlobalSnackbar />
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </LayoutProviders>
+  );
+}
+
+function LayoutProviders({ children }: { children: React.ReactNode }) {
   useOnlineManager();
   useAppState(onAppStateChange);
   const { colorScheme, paperTheme } = useThemeSetup();
@@ -40,24 +60,10 @@ export default function RootLayout() {
   // registerCrashalytics();
   // }, []);
   // useRegisterCrashalytics();
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <PaperProvider theme={paperTheme}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-              <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-              <InitDatabase>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-              </InitDatabase>
-              <GlobalSnackbar />
-            </ThemeProvider>
-          </GestureHandlerRootView>
-        </PaperProvider>
+        <PaperProvider theme={paperTheme}>{children}</PaperProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
