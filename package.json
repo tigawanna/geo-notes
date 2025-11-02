@@ -37,6 +37,7 @@
     "base64-arraybuffer": "^1.0.2",
     "color": "^5.0.2",
     "drizzle-orm": "^0.44.5",
+    "drizzle-query-logger": "^1.1.1",
     "drizzle-zod": "^0.8.3",
     "expo": "~54.0.20",
     "expo-application": "~7.0.7",
