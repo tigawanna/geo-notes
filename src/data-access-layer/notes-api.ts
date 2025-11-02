@@ -3,7 +3,7 @@ import { notes, TInsertNote, TNote } from "@/lib/drizzle/schema";
 import { eq, getTableColumns, sql } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 
-export async function getNotes(sortByDistance = true) {
+export async function getNotes(sortOption: string = "distance-asc") {
   try {
     const notesColumn = getTableColumns(notes);
     // Reference point: Nairobi, Kenya coordinates
@@ -24,14 +24,30 @@ export async function getNotes(sortByDistance = true) {
       })
       .from(notes);
     
-    if (sortByDistance) {
-      // Sort by distance first (closest to Nairobi), then by updated timestamp descending
-      // This ensures notes at the same location show most recent first
-      query.orderBy(sql`distance_km ASC`);
-      query.orderBy(sql`updated DESC`);
-    } else {
-      // Sort only by updated timestamp descending (most recent first)
-      query.orderBy(sql`updated DESC`);
+    // Apply sorting based on sortOption
+    switch (sortOption) {
+      case "recent-desc":
+        // Most recent first
+        query.orderBy(sql`updated DESC`);
+        break;
+      case "recent-asc":
+        // Oldest first
+        query.orderBy(sql`updated ASC`);
+        break;
+      case "distance-asc":
+        // Closest first, then most recent
+        query.orderBy(sql`distance_km ASC`);
+        query.orderBy(sql`updated DESC`);
+        break;
+      case "distance-desc":
+        // Farthest first, then most recent
+        query.orderBy(sql`distance_km DESC`);
+        query.orderBy(sql`updated DESC`);
+        break;
+      default:
+        // Default to closest first
+        query.orderBy(sql`distance_km ASC`);
+        query.orderBy(sql`updated DESC`);
     }
     
     // Execute spatial query to fetch notes with distance calculations
