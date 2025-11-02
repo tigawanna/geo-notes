@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Card, Chip, FAB, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Card, Chip, FAB, Text, useTheme } from "react-native-paper";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -23,6 +23,7 @@ export function Notes() {
   const queryClient = useQueryClient();
   const { location } = useDeviceLocation();
   const { locationEnabled } = useSettingsStore();
+  const theme = useTheme();
 
   const {
     data,
@@ -86,7 +87,7 @@ export function Notes() {
   const renderNoteCard = (item: NoteWithDistance) => {
     return (
       <Pressable onPress={() => router.push(`/note/edit?id=${item.id}` as any)}>
-        <Card style={styles.card} mode="elevated">
+        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated">
           <Card.Content>
             <Text variant="titleMedium" numberOfLines={2}>
               {item.title || "Untitled"}
