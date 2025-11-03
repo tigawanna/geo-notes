@@ -33,7 +33,7 @@ const getPlugins = (idt: UniqueIDT) => {
     "expo-router",
     "expo-background-task",
     "expo-secure-store",
-    "@react-native-firebase/app",
+    // "@react-native-firebase/app",
     // "@react-native-firebase/crashlytics",
     "./plugins/opsqlite-spatialite/with-spatialite",
     [

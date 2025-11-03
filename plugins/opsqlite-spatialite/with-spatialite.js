@@ -1,59 +1,70 @@
 const fs = require("fs");
 const path = require("path");
+const { withDangerousMod } = require("@expo/config-plugins");
 
-function copySpatialiteSoFiles() {
-  // eslint-disable-next-line no-undef
-  const sourceBase = path.join(__dirname, "spatialite-libs", "jni");
-  const targetBase = path.join(process.cwd(), "android", "app", "src", "main", "jniLibs");
+/**
+ * Proper Expo plugin for copying Spatialite native libraries (.so files)
+ * during the Android prebuild process using withDangerousMod
+ */
+module.exports = (config) => {
+  return withDangerousMod(config, [
+    "android",
+    async (config) => {
+      // Get the plugin's directory using module.filename
+      const pluginDir = module.filename
+        ? path.dirname(module.filename)
+        : process.cwd();
+      const sourceBase = path.join(pluginDir, "spatialite-libs", "jni");
+      
+      // Get the platform project root (android directory)
+      const platformProjectRoot = config.modRequest.platformProjectRoot;
+      
+      const targetBase = path.join(
+        platformProjectRoot,
+        "app",
+        "src",
+        "main",
+        "jniLibs"
+      );
 
-  // console.log("📦 Setting up Spatialite native libraries...");
-
-  if (!fs.existsSync(sourceBase)) {
-    // console.warn("⚠️  Spatialite libraries not found. Run extraction script first.");
-    return;
-  }
-
-  const architectures = ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"];
-
-  for (const arch of architectures) {
-    const sourceDir = path.join(sourceBase, arch);
-    const targetDir = path.join(targetBase, arch);
-
-    if (fs.existsSync(sourceDir)) {
-      // Create target directory
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
+      if (!fs.existsSync(sourceBase)) {
+        console.warn(
+          "⚠️  Spatialite libraries not found at:",
+          sourceBase
+        );
+        return config;
       }
 
-      // Copy .so files
-      const files = fs.readdirSync(sourceDir);
-      for (const file of files) {
-        if (file.endsWith(".so")) {
-          fs.copyFileSync(path.join(sourceDir, file), path.join(targetDir, file));
-          // console.log(`✓ ${arch}/${file}`);
+      const architectures = ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"];
+
+      for (const arch of architectures) {
+        const sourceDir = path.join(sourceBase, arch);
+        const targetDir = path.join(targetBase, arch);
+
+        if (fs.existsSync(sourceDir)) {
+          // Create target directory
+          if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
+          }
+
+          // Copy .so files
+          const files = fs.readdirSync(sourceDir);
+          for (const file of files) {
+            if (file.endsWith(".so")) {
+              const sourceFile = path.join(sourceDir, file);
+              const targetFile = path.join(targetDir, file);
+              fs.copyFileSync(sourceFile, targetFile);
+              console.log(
+                `✓ Copied Spatialite library: ${arch}/${file}`
+              );
+            }
+          }
         }
       }
-    }
-  }
 
-  // console.log("✅ Spatialite native libraries ready!\n");
-}
-
-// Expo config plugin
-module.exports = (config) => {
-  return {
-    ...config,
-    hooks: {
-      postPublish: async (data) => {
-        // This runs after the build is complete
-        copySpatialiteSoFiles();
-      },
-      postExport: async (data) => {
-        // This runs after exporting the project
-      },
+      console.log("✅ Spatialite native libraries installed successfully!");
+      
+      return config;
     },
-  };
+  ]);
 };
-
-// Separate function that should be called during prebuild
-module.exports.copySpatialiteSoFiles = copySpatialiteSoFiles;
