@@ -24,6 +24,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
+import { DebugDbPath } from "./DebugDbPath";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -86,7 +87,11 @@ function NotesScaffold({
           anchor={<IconButton icon="sort" onPress={openMenu} size={24} />}>
           <MenuItem
             onPress={() => handleSortSelect("recent-desc")}
-            textStyle={sortOption === "recent-desc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            textStyle={
+              sortOption === "recent-desc"
+                ? { fontWeight: "bold", color: colors.primary }
+                : { color: colors.onSurface }
+            }
             pressColor={colors.primaryContainer}>
             {sortOption === "recent-desc" && (
               <MaterialCommunityIcon
@@ -100,7 +105,11 @@ function NotesScaffold({
           </MenuItem>
           <MenuItem
             onPress={() => handleSortSelect("recent-asc")}
-            textStyle={sortOption === "recent-asc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            textStyle={
+              sortOption === "recent-asc"
+                ? { fontWeight: "bold", color: colors.primary }
+                : { color: colors.onSurface }
+            }
             pressColor={colors.primaryContainer}>
             {sortOption === "recent-asc" && (
               <MaterialCommunityIcon
@@ -115,7 +124,11 @@ function NotesScaffold({
           <MenuDivider />
           <MenuItem
             onPress={() => handleSortSelect("distance-asc")}
-            textStyle={sortOption === "distance-asc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            textStyle={
+              sortOption === "distance-asc"
+                ? { fontWeight: "bold", color: colors.primary }
+                : { color: colors.onSurface }
+            }
             pressColor={colors.primaryContainer}>
             {sortOption === "distance-asc" && (
               <MaterialCommunityIcon
@@ -129,7 +142,11 @@ function NotesScaffold({
           </MenuItem>
           <MenuItem
             onPress={() => handleSortSelect("distance-desc")}
-            textStyle={sortOption === "distance-desc" ? { fontWeight: "bold", color: colors.primary } : { color: colors.onSurface }}
+            textStyle={
+              sortOption === "distance-desc"
+                ? { fontWeight: "bold", color: colors.primary }
+                : { color: colors.onSurface }
+            }
             pressColor={colors.primaryContainer}>
             {sortOption === "distance-desc" && (
               <MaterialCommunityIcon
@@ -340,6 +357,7 @@ export function Notes() {
           <Text variant="bodyMedium" style={styles.emptyText}>
             Create your first geo-note!
           </Text>
+          <DebugDbPath />
         </View>
 
         <FAB
