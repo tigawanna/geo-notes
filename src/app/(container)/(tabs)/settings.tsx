@@ -1,10 +1,12 @@
 import { customTheme, type CustomThemeKey } from "@/constants/Colors";
-import { DeviceInfoModule } from "react-native-nitro-device-info";
+import { backupDatabase, importDatabase } from "@/lib/op-sqlite/backup";
 import { useSettingsStore, useThemeStore } from "@/store/settings-store";
-import * as Application from "expo-application";
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Divider, Icon, List, Surface, Switch, useTheme } from "react-native-paper";
 import { logger } from "@/utils/logger";
+import * as Application from "expo-application";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Divider, Icon, List, Surface, Switch, useTheme } from "react-native-paper";
 
 export default function Settings() {
   const theme = useTheme();
@@ -20,6 +22,9 @@ export default function Settings() {
     setQuickCopyMode,
   } = useSettingsStore();
 
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+
   const developerFacingBuildVersion = Application.nativeApplicationVersion;
 
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
@@ -32,6 +37,60 @@ export default function Settings() {
     github: "https://github.com/tigawanna",
     website: "https://tigawanna-portfolio.vercel.app",
     email: "denniskinuthiawaweru@gmail.com",
+  };
+
+  const handleBackup = async () => {
+    try {
+      setIsBackingUp(true);
+      await backupDatabase();
+      Alert.alert("Success", "Database backed up successfully");
+    } catch (error) {
+      logger.error("Backup failed:", error);
+      Alert.alert("Error", "Failed to backup database");
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  const handleImport = async () => {
+    Alert.alert(
+      "Import Database",
+      "This will replace your current database. Make sure you have a backup! The app will need to restart after import.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Import",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsImporting(true);
+              await importDatabase();
+              Alert.alert(
+                "Success",
+                "Database imported successfully. Please restart the app.",
+                [
+                  {
+                    text: "Restart Now",
+                    onPress: () => {
+                      // Force app to reload by navigating to root
+                      router.replace("/");
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              logger.error("Import failed:", error);
+              Alert.alert("Error", "Failed to import database");
+            } finally {
+              setIsImporting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -107,6 +166,25 @@ export default function Settings() {
         </List.Section>
 
         <List.Section>
+          <List.Subheader style={[styles.listSubHeader]}>Database</List.Subheader>
+          <List.Item
+            title="Backup Database"
+            description="Export your database to a file"
+            left={(props) => <List.Icon {...props} icon="database-export" />}
+            onPress={handleBackup}
+            disabled={isBackingUp}
+          />
+          <List.Item
+            title="Import Database"
+            description="Replace database from backup file"
+            left={(props) => <List.Icon {...props} icon="database-import" />}
+            onPress={handleImport}
+            disabled={isImporting}
+          />
+          <Divider />
+        </List.Section>
+
+        <List.Section>
           <List.Subheader style={[styles.listSubHeader]}>About</List.Subheader>
           <List.Item
             title="Author"
@@ -156,14 +234,5 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-  },
-  backupButtonContainer: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backupButton: {
-    flex: 1,
   },
 });

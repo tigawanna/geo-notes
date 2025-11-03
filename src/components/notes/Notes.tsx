@@ -24,7 +24,6 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
-import { DebugDbPath } from "./DebugDbPath";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -357,7 +356,6 @@ export function Notes() {
           <Text variant="bodyMedium" style={styles.emptyText}>
             Create your first geo-note!
           </Text>
-          <DebugDbPath />
         </View>
 
         <FAB
