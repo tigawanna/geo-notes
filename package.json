@@ -73,6 +73,8 @@
     "react-native-keyboard-controller": "1.18.5",
     "react-native-material-menu": "^2.0.0",
     "react-native-mmkv": "^4.0.0",
+    "react-native-nitro-device-info": "^1.2.0",
+    "react-native-nitro-modules": "^0.31.4",
     "react-native-pager-view": "6.9.1",
     "react-native-paper": "^5.14.5",
     "react-native-paper-dropdown": "^2.3.1",

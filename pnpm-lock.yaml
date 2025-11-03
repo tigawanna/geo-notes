@@ -166,7 +166,13 @@ importers:
         version: 2.0.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
       react-native-mmkv:
         specifier: ^4.0.0
-        version: 4.0.0(react-native-nitro-modules@0.31.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
+        version: 4.0.0(react-native-nitro-modules@0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
+      react-native-nitro-device-info:
+        specifier: ^1.2.0
+        version: 1.2.0(react-native-nitro-modules@0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
+      react-native-nitro-modules:
+        specifier: ^0.31.4
+        version: 0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
       react-native-pager-view:
         specifier: 6.9.1
         version: 6.9.1(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
@@ -4637,8 +4643,15 @@ packages:
       react-native: '*'
       react-native-nitro-modules: '*'
 
-  react-native-nitro-modules@0.31.2:
-    resolution: {integrity: sha512-UTG1kfLq5XDlR1OkhrNLNMbU6EvxIdLp4RUWT4PY8eBKyykOq8/kjc3fYMYxVEUZG+mrujRSMNXKeqHfiMUhOQ==}
+  react-native-nitro-device-info@1.2.0:
+    resolution: {integrity: sha512-HGWIEh+/FZ/6UwW364X9Nyde0wLKUjnNTShjZmqW7I1UnchbwIt8Z00ouOgQv1TpGrgwlhVYHk2kxJTbIRnIJg==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+      react-native-nitro-modules: ^0.31.2
+
+  react-native-nitro-modules@0.31.4:
+    resolution: {integrity: sha512-VIOD4lDMivexP6cqG6V3TyhAAGbnAVcBCv2LxWYHN5rQmRHgJHQ3fT2d/zbNChP5Be0ajR9QYF1xXEDDxbQT3w==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -10719,13 +10732,19 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0)
 
-  react-native-mmkv@4.0.0(react-native-nitro-modules@0.31.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0):
+  react-native-mmkv@4.0.0(react-native-nitro-modules@0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0)
-      react-native-nitro-modules: 0.31.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
+      react-native-nitro-modules: 0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
 
-  react-native-nitro-modules@0.31.2(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0):
+  react-native-nitro-device-info@1.2.0(react-native-nitro-modules@0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0)
+      react-native-nitro-modules: 0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0)
+
+  react-native-nitro-modules@0.31.4(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.13)(react@19.1.0)

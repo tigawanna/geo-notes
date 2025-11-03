@@ -10,6 +10,7 @@ const opsqliteDb = open({
 });
 const path = "libspatialite";
 const entryPoint = "sqlite3_modspatialite_init";
+
 opsqliteDb.loadExtension(path, entryPoint);
 export const db = drizzle(opsqliteDb, {
   logger: __DEV__?new EnhancedQueryLogger():false,

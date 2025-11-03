@@ -1,10 +1,16 @@
 import { customTheme, type CustomThemeKey } from "@/constants/Colors";
-import { exportDatabase, formatFileSize, getDatabaseInfo, shareDatabase } from "@/lib/drizzle/backup";
+
 import { useSettingsStore, useThemeStore } from "@/store/settings-store";
 import * as Application from "expo-application";
-import { useEffect, useState } from "react";
-import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import { ActivityIndicator, Button, Divider, Icon, List, Surface, Switch, useTheme } from "react-native-paper";
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Divider,
+  Icon,
+  List,
+  Surface,
+  Switch,
+  useTheme
+} from "react-native-paper";
 
 export default function Settings() {
   const theme = useTheme();
@@ -18,12 +24,8 @@ export default function Settings() {
     toggleLocationEnabled,
     quickCopyMode,
     setQuickCopyMode,
-    lastBackup,
   } = useSettingsStore();
-  const developerFacingBuildVersion = Application.nativeBuildVersion;
-  
-  const [isBackupLoading, setIsBackupLoading] = useState(false);
-  const [dbInfo, setDbInfo] = useState<{ size: string; path: string } | null>(null);
+  const developerFacingBuildVersion = Application.nativeBuildVersion
 
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
     key: key as CustomThemeKey,
@@ -36,62 +38,6 @@ export default function Settings() {
     website: "https://tigawanna-portfolio.vercel.app",
     email: "denniskinuthiawaweru@gmail.com",
   };
-
-  const handleBackup = async () => {
-    setIsBackupLoading(true);
-    try {
-      const result = await exportDatabase();
-      if (result.success) {
-        Alert.alert(
-          "Backup Created",
-          `Database backed up successfully!`,
-          [
-            { text: "OK", style: "default" },
-            {
-              text: "Share",
-              style: "default",
-              onPress: () => handleShareBackup(result.path),
-            },
-          ]
-        );
-      } else {
-        Alert.alert("Backup Failed", result.error || "Unknown error occurred");
-      }
-    } catch (error) {
-      Alert.alert("Backup Failed", error instanceof Error ? error.message : "Unknown error");
-    } finally {
-      setIsBackupLoading(false);
-    }
-  };
-
-  const handleShareBackup = async (backupPath?: string) => {
-    setIsBackupLoading(true);
-    try {
-      const result = await shareDatabase(backupPath);
-      if (!result.success) {
-        Alert.alert("Share Failed", result.error || "Unknown error occurred");
-      }
-    } catch (error) {
-      Alert.alert("Share Failed", error instanceof Error ? error.message : "Unknown error");
-    } finally {
-      setIsBackupLoading(false);
-    }
-  };
-
-  const loadDatabaseInfo = async () => {
-    const info = await getDatabaseInfo();
-    if (info) {
-      setDbInfo({
-        size: formatFileSize(info.size),
-        path: info.path,
-      });
-    }
-  };
-
-  // Load database info when component mounts
-  useEffect(() => {
-    loadDatabaseInfo();
-  }, []);
 
   return (
     <Surface style={{ flex: 1 }}>
@@ -151,8 +97,8 @@ export default function Settings() {
               quickCopyMode === "title"
                 ? "Auto-copy note title"
                 : quickCopyMode === "phone"
-                  ? "Auto-detect phone numbers"
-                  : "Manual input"
+                ? "Auto-detect phone numbers"
+                : "Manual input"
             }
             left={(props) => <List.Icon {...props} icon="content-copy" />}
             onPress={() => {
@@ -161,48 +107,6 @@ export default function Settings() {
               const nextMode = modes[(currentIndex + 1) % modes.length];
               setQuickCopyMode(nextMode);
             }}
-          />
-          <Divider />
-        </List.Section>
-
-        <List.Section>
-          <List.Subheader style={[styles.listSubHeader]}>Backup & Data</List.Subheader>
-          {dbInfo && (
-            <List.Item
-              title="Database Size"
-              description={dbInfo.size}
-              left={(props) => <List.Icon {...props} icon="database" />}
-            />
-          )}
-          {lastBackup && (
-            <List.Item
-              title="Last Backup"
-              description={new Date(lastBackup).toLocaleString()}
-              left={(props) => <List.Icon {...props} icon="clock-outline" />}
-            />
-          )}
-          <View style={styles.backupButtonContainer}>
-            <Button
-              mode="contained"
-              onPress={handleBackup}
-              disabled={isBackupLoading}
-              icon="backup-restore"
-              style={styles.backupButton}>
-              {isBackupLoading ? <ActivityIndicator size="small" /> : "Backup Database"}
-            </Button>
-            <Button
-              mode="outlined"
-              onPress={() => handleShareBackup()}
-              disabled={isBackupLoading}
-              icon="share-variant"
-              style={styles.backupButton}>
-              Backup & Share
-            </Button>
-          </View>
-          <List.Item
-            title="What's included?"
-            description="All your notes and locations are backed up. You can restore this backup later."
-            left={(props) => <List.Icon {...props} icon="information-outline" />}
           />
           <Divider />
         </List.Section>
