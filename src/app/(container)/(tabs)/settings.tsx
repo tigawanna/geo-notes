@@ -22,8 +22,6 @@ export default function Settings() {
 
   const developerFacingBuildVersion = Application.nativeApplicationVersion;
 
-  logger.log("App Version:", DeviceInfoModule.totalMemory);
-
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
     key: key as CustomThemeKey,
     color: value.light.primary,
