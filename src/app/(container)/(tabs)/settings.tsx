@@ -1,16 +1,10 @@
 import { customTheme, type CustomThemeKey } from "@/constants/Colors";
-
+import { DeviceInfoModule } from "react-native-nitro-device-info";
 import { useSettingsStore, useThemeStore } from "@/store/settings-store";
 import * as Application from "expo-application";
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import {
-  Divider,
-  Icon,
-  List,
-  Surface,
-  Switch,
-  useTheme
-} from "react-native-paper";
+import { Divider, Icon, List, Surface, Switch, useTheme } from "react-native-paper";
+import { logger } from "@/utils/logger";
 
 export default function Settings() {
   const theme = useTheme();
@@ -25,7 +19,10 @@ export default function Settings() {
     quickCopyMode,
     setQuickCopyMode,
   } = useSettingsStore();
-  const developerFacingBuildVersion = Application.nativeBuildVersion
+
+  const developerFacingBuildVersion = Application.nativeApplicationVersion;
+
+  logger.log("App Version:", DeviceInfoModule.totalMemory);
 
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
     key: key as CustomThemeKey,
