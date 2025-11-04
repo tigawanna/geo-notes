@@ -1,6 +1,5 @@
 import type { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
-import { logger } from "@/utils/logger";
 import { extractPhoneNumber, parseGeoJSONLocation } from "@/utils/note-utils";
 import { useEffect, useState } from "react";
 
@@ -9,7 +8,6 @@ interface UseNoteDetailsFormProps {
 }
 
 export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
-  logger.log("Initializing useNoteDetailsForm with note:", note);
   const { quickCopyMode: globalQuickCopyMode } = useSettingsStore();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");

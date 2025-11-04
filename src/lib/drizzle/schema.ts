@@ -2,8 +2,8 @@ import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { sql } from "drizzle-orm/sql";
 import * as t from "drizzle-orm/sqlite-core";
 import { sqliteTable as table } from "drizzle-orm/sqlite-core";
-import { point } from "./drizzlespatialite-types";
 import { createInsertSchema } from "drizzle-zod";
+import { point } from "./drizzlespatialite-types";
 
 export const notes = table(
   "notes",
