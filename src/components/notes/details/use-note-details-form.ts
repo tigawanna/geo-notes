@@ -14,6 +14,7 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
   const [quickCopy, setQuickCopy] = useState("");
   const [noteQuickCopyMode, setNoteQuickCopyMode] = useState<"title" | "phone" | "manual" | null>(null);
   const [savedLocation, setSavedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
 
   // Use note-specific mode if set, otherwise use global mode
   const effectiveQuickCopyMode = noteQuickCopyMode ?? globalQuickCopyMode;
@@ -32,6 +33,21 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
         if (location) {
           setSavedLocation(location);
         }
+      }
+
+      // Parse tags from JSON string if it exists
+      if (note.tags) {
+        try {
+          const parsedTags = JSON.parse(note.tags);
+          if (Array.isArray(parsedTags)) {
+            setTags(parsedTags);
+          }
+        } catch (error) {
+          console.warn("Failed to parse note tags:", error);
+          setTags([]);
+        }
+      } else {
+        setTags([]);
       }
     }
   }, [note]);
@@ -59,5 +75,7 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
     setNoteQuickCopyMode,
     savedLocation,
     setSavedLocation,
+    tags,
+    setTags,
   };
 }

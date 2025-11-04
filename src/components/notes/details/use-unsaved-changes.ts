@@ -7,9 +7,10 @@ interface UseUnsavedChangesProps {
   title: string;
   content: string;
   quickCopy: string;
+  tags: string[];
 }
 
-export function useUnsavedChanges({ note, title, content, quickCopy }: UseUnsavedChangesProps) {
+export function useUnsavedChanges({ note, title, content, quickCopy, tags }: UseUnsavedChangesProps) {
   const navigation = useNavigation();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [unsavedDialogVisible, setUnsavedDialogVisible] = useState(false);
@@ -21,9 +22,22 @@ export function useUnsavedChanges({ note, title, content, quickCopy }: UseUnsave
       const titleChanged = title !== (note.title || "");
       const contentChanged = content !== (note.content || "");
       const quickCopyChanged = quickCopy !== (note.quickCopy || "");
-      setHasUnsavedChanges(titleChanged || contentChanged || quickCopyChanged);
+
+      // Parse note tags for comparison
+      let noteTags: string[] = [];
+      if (note.tags) {
+        try {
+          noteTags = JSON.parse(note.tags);
+        } catch (error) {
+          noteTags = [];
+        }
+      }
+
+      const tagsChanged = JSON.stringify(tags.sort()) !== JSON.stringify(noteTags.sort());
+
+      setHasUnsavedChanges(titleChanged || contentChanged || quickCopyChanged || tagsChanged);
     }
-  }, [title, content, quickCopy, note]);
+  }, [title, content, quickCopy, tags, note]);
 
   // Prevent navigation when there are unsaved changes
   useEffect(() => {
