@@ -1,3 +1,4 @@
+import { SortOption } from "@/data-access-layer/notes-api";
 import {
   createNotesMutationOptions,
   getNotesQueryOptions,
@@ -26,7 +27,6 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
-import { SortOption } from "@/data-access-layer/notes-api";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -285,7 +285,9 @@ export function Notes() {
             )}
             <View style={styles.footer}>
               <Text variant="bodySmall" style={styles.distance}>
-                📍 {((item.distance as number) / 1000).toFixed(2)} km
+                📍 {(item.distance as number) < 1000
+                  ? `${Math.round(item.distance as number)} m`
+                  : `${((item.distance as number) / 1000).toFixed(1)} km`}
               </Text>
               <Text variant="bodySmall" style={styles.coordinates}>
                 {Number(item.latitude).toFixed(4)}, {Number(item.longitude).toFixed(4)}
