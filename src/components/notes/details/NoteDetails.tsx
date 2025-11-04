@@ -18,6 +18,7 @@ import { NoteDetailsDialogs } from "./NoteDetailsDialogs";
 import { NoteDetailsForm } from "./NoteDetailsForm";
 import { NoteDetailsHeader } from "./NoteDetailsHeader";
 import { NoteLocationSection } from "./NoteLocationSection";
+import { NoteTagsSection } from "./NoteTagsSection";
 import { useNoteActions } from "./use-note-actions";
 import { useNoteDetailsForm } from "./use-note-details-form";
 import { useNoteLocation } from "./use-note-location";
@@ -61,6 +62,8 @@ export function NoteDetails() {
     setNoteQuickCopyMode,
     savedLocation,
     setSavedLocation,
+    tags,
+    setTags,
   } = useNoteDetailsForm({ note });
 
   const {
@@ -70,7 +73,7 @@ export function NoteDetails() {
     handleBack,
     discardChanges,
     cancelNavigation,
-  } = useUnsavedChanges({ note, title, content, quickCopy });
+  } = useUnsavedChanges({ note, title, content, quickCopy, tags });
 
   const {
     menuVisible,
@@ -86,7 +89,7 @@ export function NoteDetails() {
 
   // Wrapper functions to pass the right parameters
   const handleSave = () => {
-    saveNote(title, content, quickCopy, savedLocation, noteQuickCopyMode);
+    saveNote(title, content, quickCopy, savedLocation, noteQuickCopyMode, tags);
   };
 
   const handleQuickCopyModeChange = (mode: "title" | "phone" | "manual" | null) => {
@@ -200,6 +203,19 @@ export function NoteDetails() {
                 isLocationLoading={isLocationLoading}
                 onAddLocation={handleAddLocation}
                 updatedAt={note?.updated}
+              />
+            </Card.Content>
+          </Card>
+
+          {/* Tags Card */}
+          <Card style={styles.card} elevation={2}>
+            <Card.Content>
+              <NoteTagsSection
+                noteTags={tags}
+                onTagsChange={(newTags) => {
+                  setTags(newTags);
+                  setHasUnsavedChanges(true);
+                }}
               />
             </Card.Content>
           </Card>

@@ -42,7 +42,8 @@ export function useNoteActions({ id, setHasUnsavedChanges }: UseNoteActionsProps
     content: string,
     quickCopy: string,
     savedLocation: { lat: number; lng: number } | null,
-    quickCopyMode: "title" | "phone" | "manual" | null
+    quickCopyMode: "title" | "phone" | "manual" | null,
+    tags: string[]
   ) => {
     if (!id) return;
 
@@ -51,6 +52,7 @@ export function useNoteActions({ id, setHasUnsavedChanges }: UseNoteActionsProps
       content,
       quickCopy,
       quickCopyMode: quickCopyMode as any,
+      tags: JSON.stringify(tags),
     };
 
     // Add location if we have a saved location (either from note or manually set)
