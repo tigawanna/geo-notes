@@ -14,12 +14,39 @@ import { useUnsavedChanges } from "./use-unsaved-changes";
 
 export function NoteDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isPending, error: queryError } = useQuery(getNoteQueryOptions(id || ""));
+
+  const {
+    location,
+    isLocationLoading,
+    locationUpdateDialogVisible,
+    setLocationUpdateDialogVisible,
+    handleAddLocation: addLocation,
+    confirmLocationUpdate: updateLocation,
+  } = useNoteLocation(id);
+
+  const {
+    data,
+    isPending,
+    error: queryError,
+  } = useQuery(
+    getNoteQueryOptions(id || "", {
+      lat: location?.coords.latitude || 0,
+      lng: location?.coords.longitude || 0,
+    })
+  );
   const note = data?.result;
 
   // Custom hooks for managing different aspects of the component
-  const { title, setTitle, content, setContent, quickCopy, setQuickCopy, savedLocation, setSavedLocation } =
-    useNoteDetailsForm({ note });
+  const {
+    title,
+    setTitle,
+    content,
+    setContent,
+    quickCopy,
+    setQuickCopy,
+    savedLocation,
+    setSavedLocation,
+  } = useNoteDetailsForm({ note });
 
   const {
     hasUnsavedChanges,
@@ -41,15 +68,6 @@ export function NoteDetails() {
     handleDelete,
     confirmDelete,
   } = useNoteActions({ id, setHasUnsavedChanges });
-
-  const {
-    location,
-    isLocationLoading,
-    locationUpdateDialogVisible,
-    setLocationUpdateDialogVisible,
-    handleAddLocation: addLocation,
-    confirmLocationUpdate: updateLocation,
-  } = useNoteLocation();
 
   // Wrapper functions to pass the right parameters
   const handleSave = () => {
@@ -119,6 +137,25 @@ export function NoteDetails() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
+          {note.updated && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}>
+              <Text
+                variant="labelMedium"
+                style={{
+                  fontWeight: "600",
+                  minWidth: 120,
+                }}>
+                Updated At:
+              </Text>
+              <Text variant="bodyMedium">{new Date(note.updated).toLocaleString()}</Text>
+            </View>
+          )}
           <NoteDetailsForm
             title={title}
             setTitle={setTitle}
@@ -129,10 +166,14 @@ export function NoteDetails() {
           />
 
           <NoteLocationSection
-            savedLocation={savedLocation}
+            savedLocation={{
+              lat: note.latitude,
+              lng: note.longitude,
+            }}
             currentLocation={location}
             isLocationLoading={isLocationLoading}
             onAddLocation={handleAddLocation}
+            updatedAt={note?.updated}
           />
         </ScrollView>
       </KeyboardAvoidingView>

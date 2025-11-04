@@ -1,9 +1,11 @@
 import { useDeviceLocation } from "@/hooks/use-device-location";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-export function useNoteLocation() {
+export function useNoteLocation(id?: string | undefined) {
   const { location, requestLocationAgain, isLoading: isLocationLoading } = useDeviceLocation();
   const [locationUpdateDialogVisible, setLocationUpdateDialogVisible] = useState(false);
+  const qc = useQueryClient();
 
   const handleAddLocation = (
     savedLocation: { lat: number; lng: number } | null,
@@ -24,6 +26,7 @@ export function useNoteLocation() {
           lng: coords.longitude,
           lat: coords.latitude,
         });
+        qc.invalidateQueries({ queryKey: ["notes", id] });
         setHasUnsavedChanges(true);
       }
     }

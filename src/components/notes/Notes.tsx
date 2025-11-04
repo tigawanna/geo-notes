@@ -278,11 +278,11 @@ export function Notes() {
                 {item.content}
               </Text>
             )}
-            {item.quickCopy && (
+            {/* {item.quickCopy && (
               <Chip icon="content-copy" style={styles.chip} compact>
                 {item.quickCopy}
               </Chip>
-            )}
+            )} */}
             <View style={styles.footer}>
               <Text variant="bodySmall" style={styles.distance}>
                 📍 {(item.distance as number) < 1000
@@ -292,12 +292,12 @@ export function Notes() {
               <Text variant="bodySmall" style={styles.coordinates}>
                 {Number(item.latitude).toFixed(4)}, {Number(item.longitude).toFixed(4)}
               </Text>
-              {item.updated && (
+              {/* {item.updated && (
                 <Text variant="bodySmall" style={styles.updatedAt}>
                   Updated: {new Date(item.updated).toLocaleDateString()}{" "}
                   {new Date(item.updated).toLocaleTimeString()}
                 </Text>
-              )}
+              )} */}
             </View>
           </Card.Content>
         </Card>

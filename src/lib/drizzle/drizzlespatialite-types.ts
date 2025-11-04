@@ -13,7 +13,7 @@ export const point = customType<{
   data: string; // GeoJSON string or "POINT(lng lat)"
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`;
@@ -25,7 +25,7 @@ export const multiPoint = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
@@ -37,7 +37,7 @@ export const lineString = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
@@ -49,7 +49,7 @@ export const multiLineString = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
@@ -61,7 +61,7 @@ export const polygon = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
@@ -73,7 +73,7 @@ export const multiPolygon = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
@@ -85,7 +85,7 @@ export const geometry = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
@@ -97,7 +97,7 @@ export const geometryCollection = customType<{
   data: string; // GeoJSON string
 }>({
   dataType() {
-    return "text";
+    return "blob";
   },
   toDriver(value) {
     return sql`GeomFromGeoJSON(${value})`; // Removed ST_MakeValid
