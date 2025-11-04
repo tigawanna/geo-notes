@@ -7,8 +7,8 @@ export function AppLogoSvg(props: ComponentProps<typeof Svg>) {
   return (
     <Svg
       strokeWidth={1}
-      width={100}
-      height={100}
+      width={80}
+      height={50}
       viewBox="0 0 24 24"
       id="Layer_1"
       data-name="Layer 1"
