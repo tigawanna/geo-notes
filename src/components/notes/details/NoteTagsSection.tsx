@@ -49,7 +49,7 @@ export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps
               key={tag.id}
               style={[
                 styles.tagChip,
-                { backgroundColor: tag.color || theme.colors.primaryContainer },
+                { backgroundColor:theme.colors.primaryContainer },
               ]}
               textStyle={{ color: theme.colors.onPrimaryContainer }}
               onClose={() => handleRemoveTag(tag.id)}
@@ -78,7 +78,7 @@ export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps
                       key={tag.id}
                       style={[
                         styles.availableTagChip,
-                        { backgroundColor: tag.color || theme.colors.primaryContainer },
+                        { backgroundColor: theme.colors.primaryContainer },
                       ]}
                       textStyle={{ color: theme.colors.onPrimaryContainer }}
                       onPress={() => handleAddTag(tag.id)}
