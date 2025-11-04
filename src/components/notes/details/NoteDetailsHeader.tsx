@@ -1,4 +1,4 @@
-import { Appbar, Menu } from "react-native-paper";
+import { Appbar, Menu, Tooltip } from "react-native-paper";
 
 interface NoteDetailsHeaderProps {
   onBack: () => void;
@@ -8,6 +8,8 @@ interface NoteDetailsHeaderProps {
   menuVisible: boolean;
   setMenuVisible: (visible: boolean) => void;
   onDelete: () => void;
+  onQuickCopy: () => void;
+  hasQuickCopy: boolean;
 }
 
 export function NoteDetailsHeader({
@@ -18,17 +20,38 @@ export function NoteDetailsHeader({
   menuVisible,
   setMenuVisible,
   onDelete,
+  onQuickCopy,
+  hasQuickCopy,
 }: NoteDetailsHeaderProps) {
   return (
-    <Appbar.Header>
+    <Appbar.Header elevated>
       <Appbar.BackAction onPress={onBack} />
       <Appbar.Content title="" />
-      <Appbar.Action icon="check" onPress={onSave} disabled={isSaving || !hasUnsavedChanges} />
+      {hasUnsavedChanges && (
+        <Tooltip title="You have unsaved changes">
+          <Appbar.Action icon="circle" size={8} color="orange" disabled />
+        </Tooltip>
+      )}
+      <Tooltip title="Quick copy">
+        <Appbar.Action 
+          icon="content-copy" 
+          onPress={onQuickCopy} 
+          disabled={!hasQuickCopy}
+        />
+      </Tooltip>
+      <Tooltip title={hasUnsavedChanges ? "Save changes" : "No changes to save"}>
+        <Appbar.Action 
+          icon="check" 
+          onPress={onSave} 
+          disabled={isSaving || !hasUnsavedChanges}
+          animated
+        />
+      </Tooltip>
       <Menu
         visible={menuVisible}
         onDismiss={() => setMenuVisible(false)}
         anchor={<Appbar.Action icon="dots-vertical" onPress={() => setMenuVisible(true)} />}>
-        <Menu.Item leadingIcon="delete" onPress={onDelete} title="Delete" />
+        <Menu.Item leadingIcon="delete" onPress={onDelete} title="Delete Note" />
       </Menu>
     </Appbar.Header>
   );
