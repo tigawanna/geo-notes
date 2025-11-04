@@ -234,11 +234,6 @@ const styles = StyleSheet.create({
   checkIcon: {
     marginLeft: 6,
   },
-  tagDivider: {
-    width: "100%",
-    marginVertical: 2,
-    height: 1,
-  },
   noTagsText: {
     opacity: 0.6,
     fontStyle: "italic",
