@@ -25,9 +25,9 @@ export async function getNotes({ sortOption, location }: GetNotesProps) {
         // Extract X coordinate (longitude) from point geometry blob
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
         // Calculate great-circle distance using SpatiaLite's geodesic functions
-        // ST_Distance returns distance in meters by default, converted to kilometers
+        // ST_Distance returns distance in meters by default
         distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
-          "distance_km"
+          "distance_meters"
         ),
       })
       .from(notes);
@@ -44,17 +44,17 @@ export async function getNotes({ sortOption, location }: GetNotesProps) {
         break;
       case "distance-asc":
         // Closest first, then most recent
-        query.orderBy(sql`distance_km ASC`);
+        query.orderBy(sql`distance_meters ASC`);
         query.orderBy(sql`updated DESC`);
         break;
       case "distance-desc":
         // Farthest first, then most recent
-        query.orderBy(sql`distance_km DESC`);
+        query.orderBy(sql`distance_meters DESC`);
         query.orderBy(sql`updated DESC`);
         break;
       default:
         // Default to closest first
-        query.orderBy(sql`distance_km ASC`);
+        query.orderBy(sql`distance_meters ASC`);
         query.orderBy(sql`updated DESC`);
     }
 
