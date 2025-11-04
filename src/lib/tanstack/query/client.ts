@@ -4,6 +4,7 @@ import { MutationCache, QueryClient } from "@tanstack/react-query";
 export const queryKeyPrefixes = {
   notes: "notes",
   deviceLocation: "device-location",
+  tags: "tags",
 } as const;
 
 
