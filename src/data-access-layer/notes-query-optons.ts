@@ -1,11 +1,19 @@
 import type { TNote } from "@/lib/drizzle/schema";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { createNote, deleteAllNotes, deleteNote, getNote, getNotes, updateNote } from "./notes-api";
+import {
+  createNote,
+  deleteAllNotes,
+  deleteNote,
+  getNote,
+  getNotes,
+  GetNotesProps,
+  updateNote,
+} from "./notes-api";
 
-export const getNotesQueryOptions = (sortOption: string) =>
+export const getNotesQueryOptions = ({ sortOption, location }: GetNotesProps) =>
   queryOptions({
     queryKey: ["notes", sortOption],
-    queryFn: () => getNotes(sortOption),
+    queryFn: () => getNotes({ sortOption, location }),
   });
 
 export const getNoteQueryOptions = (id: string) =>
