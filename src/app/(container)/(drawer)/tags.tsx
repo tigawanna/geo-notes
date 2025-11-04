@@ -1,41 +1,144 @@
-import { tagsQueryOptions, useCreateTagMutation, useDeleteTagMutation, useUpdateTagMutation } from "@/data-access-layer/tags-query-options";
+import {
+  tagsQueryOptions,
+  useCreateTagMutation,
+  useDeleteTagMutation,
+  useUpdateTagMutation,
+} from "@/data-access-layer/tags-query-options";
 import type { TTag } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { BackHandler, FlatList, StyleSheet, View } from "react-native";
 import {
-    ActivityIndicator,
-    Appbar,
-    Button,
-    Card,
-    Chip,
-    Dialog,
-    FAB,
-    IconButton,
-    Menu,
-    Portal,
-    Text,
-    TextInput,
-    useTheme,
+  ActivityIndicator,
+  Appbar,
+  Button,
+  Card,
+  Chip,
+  Dialog,
+  FAB,
+  IconButton,
+  Menu,
+  Portal,
+  Text,
+  TextInput,
+  useTheme,
+  Surface,
 } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const PRESET_COLORS = [
-  "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
-  "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B400", "#52B788",
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#FFA07A",
+  "#98D8C8",
+  "#F7DC6F",
+  "#BB8FCE",
+  "#85C1E2",
+  "#F8B400",
+  "#52B788",
 ];
 
 export default function TagsScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: tags, isPending, error } = useQuery(tagsQueryOptions);
+  const deleteMutation = useDeleteTagMutation();
+
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setMenuVisible(null);
+    await deleteMutation.mutateAsync(id);
+  };
+
+  const { scaffold, handleOpenDialog } = useTagsScaffold(insets);
+
+  if (isPending) {
+    return scaffold(
+      <View style={styles.statesContainer}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return scaffold(
+      <View style={styles.statesContainer}>
+        <Text variant="titleMedium" style={{ color: theme.colors.error }}>
+          Failed to load tags
+        </Text>
+      </View>
+    );
+  }
+
+  return scaffold(
+    tags && tags.length === 0 ? (
+      <View style={styles.emptyContainer}>
+        <Text variant="titleLarge" style={styles.emptyTitle}>
+          No tags yet
+        </Text>
+        <Text variant="bodyMedium" style={styles.emptyText}>
+          Create tags to organize your notes
+        </Text>
+      </View>
+    ) : (
+      <FlatList
+        data={tags}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <Card style={[styles.tagCard,{backgroundColor:theme.colors.surface}]} elevation={1}>
+            <Card.Content style={styles.tagCardContent}>
+              <View style={styles.tagInfo}>
+                <Chip
+                  style={[
+                    styles.tagChip,
+                    { backgroundColor: item.color || theme.colors.primaryContainer },
+                  ]}
+                  textStyle={{ color: theme.colors.onPrimaryContainer }}>
+                  {item.name}
+                </Chip>
+                <Text variant="bodySmall" style={styles.tagDate}>
+                  Created {new Date(item.created || "").toLocaleDateString()}
+                </Text>
+              </View>
+              <Menu
+                visible={menuVisible === item.id}
+                onDismiss={() => setMenuVisible(null)}
+                anchor={
+                  <IconButton icon="dots-vertical" onPress={() => setMenuVisible(item.id)} />
+                }>
+                <Menu.Item
+                  leadingIcon="pencil"
+                  onPress={() => {
+                    setMenuVisible(null);
+                    handleOpenDialog(item);
+                  }}
+                  title="Edit"
+                />
+                <Menu.Item
+                  leadingIcon="delete"
+                  onPress={() => handleDelete(item.id)}
+                  title="Delete"
+                />
+              </Menu>
+            </Card.Content>
+          </Card>
+        )}
+      />
+    )
+  );
+}
+
+function useTagsScaffold(insets: { top: number; bottom: number; left: number; right: number }) {
   const createMutation = useCreateTagMutation();
   const updateMutation = useUpdateTagMutation();
-  const deleteMutation = useDeleteTagMutation();
 
   const [dialogVisible, setDialogVisible] = useState(false);
   const [editingTag, setEditingTag] = useState<TTag | null>(null);
   const [tagName, setTagName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
-  const [menuVisible, setMenuVisible] = useState<string | null>(null);
 
   const handleOpenDialog = (tag?: TTag) => {
     if (tag) {
@@ -75,107 +178,13 @@ export default function TagsScreen() {
     handleCloseDialog();
   };
 
-  const handleDelete = async (id: string) => {
-    setMenuVisible(null);
-    await deleteMutation.mutateAsync(id);
-  };
-
-  if (isPending) {
-    return (
-      <View style={styles.container}>
-        <Appbar.Header>
-          <Appbar.Content title="Tags" />
-        </Appbar.Header>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" />
-        </View>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Appbar.Header>
-          <Appbar.Content title="Tags" />
-        </Appbar.Header>
-        <View style={styles.centerContainer}>
-          <Text variant="titleMedium" style={{ color: theme.colors.error }}>
-            Failed to load tags
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <Appbar.Header>
-        <Appbar.Content title="Tags" />
-      </Appbar.Header>
-
-      {tags && tags.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text variant="titleLarge" style={styles.emptyTitle}>
-            No tags yet
-          </Text>
-          <Text variant="bodyMedium" style={styles.emptyText}>
-            Create tags to organize your notes
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={tags}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <Card style={styles.tagCard} elevation={1}>
-              <Card.Content style={styles.tagCardContent}>
-                <View style={styles.tagInfo}>
-                  <Chip
-                    style={[
-                      styles.tagChip,
-                      { backgroundColor: item.color || theme.colors.primaryContainer },
-                    ]}
-                    textStyle={{ color: theme.colors.onPrimaryContainer }}>
-                    {item.name}
-                  </Chip>
-                  <Text variant="bodySmall" style={styles.tagDate}>
-                    Created {new Date(item.created || "").toLocaleDateString()}
-                  </Text>
-                </View>
-                <Menu
-                  visible={menuVisible === item.id}
-                  onDismiss={() => setMenuVisible(null)}
-                  anchor={
-                    <IconButton
-                      icon="dots-vertical"
-                      onPress={() => setMenuVisible(item.id)}
-                    />
-                  }>
-                  <Menu.Item
-                    leadingIcon="pencil"
-                    onPress={() => {
-                      setMenuVisible(null);
-                      handleOpenDialog(item);
-                    }}
-                    title="Edit"
-                  />
-                  <Menu.Item
-                    leadingIcon="delete"
-                    onPress={() => handleDelete(item.id)}
-                    title="Delete"
-                  />
-                </Menu>
-              </Card.Content>
-            </Card>
-          )}
-        />
-      )}
+  const scaffold = (children: React.ReactNode) => (
+    <Surface style={[styles.scaffoldContainer]}>
+      <View style={[styles.contentContainer, { paddingBottom: insets.bottom }]}>{children}</View>
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { bottom: insets.bottom + 16 }]}
         onPress={() => handleOpenDialog()}
       />
 
@@ -219,15 +228,20 @@ export default function TagsScreen() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-    </View>
+    </Surface>
   );
+
+  return { scaffold, handleOpenDialog };
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scaffoldContainer: {
     flex: 1,
   },
-  centerContainer: {
+  contentContainer: {
+    flex: 1,
+  },
+  statesContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -274,7 +288,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     margin: 16,
     right: 0,
-    bottom: 0,
   },
   input: {
     marginBottom: 16,

@@ -123,7 +123,7 @@ export default function DrawerLayout() {
           name="tags"
           options={{
             title: "Manage Tags",
-            headerShown: false,
+            headerShown: true,
             drawerIcon: ({ color, size }: { color: string; size: number }) => (
               <MaterialCommunityIcon size={size} name="tag-multiple" color={color} />
             ),
