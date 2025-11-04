@@ -1,6 +1,6 @@
 import {
-    createNotesMutationOptions,
-    getNotesQueryOptions,
+  createNotesMutationOptions,
+  getNotesQueryOptions,
 } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import type { TNote } from "@/lib/drizzle/schema";
@@ -16,21 +16,20 @@ import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
-    ActivityIndicator,
-    Card,
-    Chip,
-    FAB,
-    IconButton,
-    Searchbar,
-    Text,
-    useTheme,
+  ActivityIndicator,
+  Card,
+  Chip,
+  FAB,
+  IconButton,
+  Searchbar,
+  Text,
+  useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
+import { SortOption } from "@/data-access-layer/notes-api";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
-
-type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distance-desc";
 
 interface NoteWithDistance extends TNote {
   latitude: string;
@@ -70,11 +69,7 @@ function NotesScaffold({
   return (
     <View style={styles.scaffoldContainer}>
       <View style={styles.searchRow}>
-        <IconButton
-          icon="menu"
-          onPress={() => navigation.openDrawer()}
-          size={24}
-        />
+        <IconButton icon="menu" onPress={() => navigation.openDrawer()} size={24} />
         <Searchbar
           placeholder="Search notes"
           onChangeText={setSearchQuery}
@@ -185,7 +180,15 @@ export function Notes() {
     error: queryError,
     refetch,
     isRefetching,
-  } = useQuery(getNotesQueryOptions(sortOption));
+  } = useQuery(
+    getNotesQueryOptions({
+      sortOption,
+      location: {
+        lat: location?.coords.latitude || 0,
+        lng: location?.coords.longitude || 0,
+      },
+    })
+  );
 
   const createNoteMutation = useMutation({
     ...createNotesMutationOptions,

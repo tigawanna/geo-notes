@@ -1,14 +1,22 @@
 import { db } from "@/lib/drizzle/client";
 import { notes, TInsertNote, TNote } from "@/lib/drizzle/schema";
+import { TLocation } from "@/types/location";
 import { eq, getTableColumns, sql } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
+export type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distance-desc";
 
-export async function getNotes(sortOption: string = "distance-asc") {
+
+export type GetNotesProps = {
+  sortOption?: SortOption;
+  location?: TLocation;
+}
+
+export async function getNotes({ sortOption, location }: GetNotesProps) {
   try {
     const notesColumn = getTableColumns(notes);
     // Reference point: Nairobi, Kenya coordinates
     // SpatiaLite uses [longitude, latitude] order in GeoJSON (X, Y)
-    const nairobiGeoJSON = '{"type":"Point","coordinates":[36.8219,-1.2921]}';
+    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`
     const query = db
       .select({
         ...notesColumn,
@@ -18,12 +26,12 @@ export async function getNotes(sortOption: string = "distance-asc") {
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
         // Calculate great-circle distance using SpatiaLite's geodesic functions
         // ST_Distance returns distance in meters by default, converted to kilometers
-        distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${nairobiGeoJSON}))`.as(
+        distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
           "distance_km"
         ),
       })
       .from(notes);
-    
+
     // Apply sorting based on sortOption
     switch (sortOption) {
       case "recent-desc":
@@ -49,7 +57,7 @@ export async function getNotes(sortOption: string = "distance-asc") {
         query.orderBy(sql`distance_km ASC`);
         query.orderBy(sql`updated DESC`);
     }
-    
+
     // Execute spatial query to fetch notes with distance calculations
     const res = await query;
 
