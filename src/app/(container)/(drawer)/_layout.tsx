@@ -66,8 +66,10 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         </Text>
         {selectedTagId && (
           <View style={[styles.clearFilterContainer, { backgroundColor: colors.primaryContainer }]}>
-            <Text variant="bodySmall" style={[styles.filteringText, { color: colors.onPrimaryContainer }]}>
-              Filtering by: {tags?.find(t => t.id === selectedTagId)?.name || 'Unknown'}
+            <Text
+              variant="bodySmall"
+              style={[styles.filteringText, { color: colors.onPrimaryContainer }]}>
+              Filtering by: {tags?.find((t) => t.id === selectedTagId)?.name || "Unknown"}
             </Text>
             <Text
               variant="bodySmall"
@@ -83,33 +85,33 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         {tags && tags.length > 0 ? (
           <View style={styles.tagsContainer}>
             {tags.slice(0, 8).map((tag, index) => (
-              <React.Fragment key={tag.id}>
-                <View
+              <View
+                key={tag.id}
+                style={[
+                  styles.tagChip,
+                  {
+                    backgroundColor: colors.elevation.level3,
+                    borderColor: selectedTagId === tag.id ? colors.primary : "transparent",
+                  },
+                ]}
+                onTouchEnd={() => handleTagPress(tag.id)}>
+                <View style={[styles.colorDot, { backgroundColor: tag.color || colors.primary }]} />
+                <Text
                   style={[
-                    styles.tagChip,
-                    selectedTagId === tag.id && [styles.selectedTagChip, { backgroundColor: colors.primaryContainer }],
-                  ]}
-                  onTouchEnd={() => handleTagPress(tag.id)}>
-                  <View
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: tag.color || colors.primary },
-                    ]}
+                    styles.tagChipText,
+                    selectedTagId === tag.id && { color: colors.primary },
+                  ]}>
+                  {tag.name}
+                </Text>
+                {selectedTagId === tag.id && (
+                  <MaterialCommunityIcon
+                    name="check"
+                    size={14}
+                    color={colors.primary}
+                    style={styles.checkIcon}
                   />
-                  <Text style={styles.tagChipText}>{tag.name}</Text>
-                  {selectedTagId === tag.id && (
-                    <MaterialCommunityIcon
-                      name="check"
-                      size={14}
-                      color={colors.primary}
-                      style={styles.checkIcon}
-                    />
-                  )}
-                </View>
-                {index < Math.min(tags.length - 1, 7) && (
-                  <Divider style={[styles.tagDivider, { backgroundColor: colors.primary }]} />
                 )}
-              </React.Fragment>
+              </View>
             ))}
           </View>
         ) : (
@@ -190,17 +192,17 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    width: "100%",
     gap: 8,
   },
   tagChip: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
+    width: "100%",
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1,
   },
   colorDot: {
     width: 10,
@@ -229,14 +231,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textDecorationLine: "underline",
   },
-  selectedTagChip: {
-    // backgroundColor will be set inline
-  },
   checkIcon: {
     marginLeft: 6,
   },
   tagDivider: {
-    marginVertical: 4,
+    width: "100%",
+    marginVertical: 2,
     height: 1,
   },
   noTagsText: {
