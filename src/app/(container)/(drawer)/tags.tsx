@@ -1,28 +1,26 @@
 import {
-  tagsQueryOptions,
-  useCreateTagMutation,
-  useDeleteTagMutation,
-  useUpdateTagMutation,
+    tagsQueryOptions,
+    useCreateTagMutation,
+    useDeleteTagMutation,
+    useUpdateTagMutation,
 } from "@/data-access-layer/tags-query-options";
 import type { TTag } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { BackHandler, FlatList, StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 import {
-  ActivityIndicator,
-  Appbar,
-  Button,
-  Card,
-  Chip,
-  Dialog,
-  FAB,
-  IconButton,
-  Menu,
-  Portal,
-  Text,
-  TextInput,
-  useTheme,
-  Surface,
+    ActivityIndicator,
+    Button,
+    Card,
+    Dialog,
+    FAB,
+    IconButton,
+    Menu,
+    Portal,
+    Surface,
+    Text,
+    TextInput,
+    useTheme
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -91,14 +89,15 @@ export default function TagsScreen() {
           <Card style={[styles.tagCard,{backgroundColor:theme.colors.surface}]} elevation={1}>
             <Card.Content style={styles.tagCardContent}>
               <View style={styles.tagInfo}>
-                <Chip
-                  style={[
-                    styles.tagChip,
-                    { backgroundColor: item.color || theme.colors.primaryContainer },
-                  ]}
-                  textStyle={{ color: theme.colors.onPrimaryContainer }}>
-                  {item.name}
-                </Chip>
+                <View style={styles.tagChip}>
+                  <View
+                    style={[
+                      styles.colorDot,
+                      { backgroundColor: item.color || theme.colors.primary },
+                    ]}
+                  />
+                  <Text variant="bodyMedium">{item.name}</Text>
+                </View>
                 <Text variant="bodySmall" style={styles.tagDate}>
                   Created {new Date(item.created || "").toLocaleDateString()}
                 </Text>
@@ -279,7 +278,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tagChip: {
+    flexDirection: "row",
+    alignItems: "center",
     alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  colorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
   },
   tagDate: {
     opacity: 0.6,

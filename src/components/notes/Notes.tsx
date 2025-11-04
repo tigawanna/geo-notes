@@ -3,9 +3,11 @@ import {
   createNotesMutationOptions,
   getNotesQueryOptions,
 } from "@/data-access-layer/notes-query-optons";
+import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import type { TNote } from "@/lib/drizzle/schema";
 import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
+import { useFilterStore } from "@/store/filter-store";
 import { useSettingsStore } from "@/store/settings-store";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
@@ -19,7 +21,6 @@ import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
   ActivityIndicator,
   Card,
-  Chip,
   FAB,
   IconButton,
   Searchbar,
@@ -43,6 +44,7 @@ interface NotesScaffoldProps {
   setSearchQuery: (query: string) => void;
   sortOption: SortOption;
   setSortOption: (sort: SortOption) => void;
+  selectedTagId: string | null;
 }
 
 function NotesScaffold({
@@ -51,10 +53,12 @@ function NotesScaffold({
   setSearchQuery,
   sortOption,
   setSortOption,
+  selectedTagId,
 }: NotesScaffoldProps) {
   const { colors } = useTheme();
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
   const navigation = useNavigation<DrawerNavigationProp<any>>();
+  const { data: tags } = useQuery(tagsQueryOptions);
 
   const openMenu = () => {
     setSortMenuVisible(true);
@@ -65,6 +69,8 @@ function NotesScaffold({
     setSortOption(newSort);
     closeMenu();
   };
+
+  const selectedTag = tags?.find(tag => tag.id === selectedTagId);
 
   return (
     <View style={styles.scaffoldContainer}>
@@ -162,6 +168,24 @@ function NotesScaffold({
           </MenuItem>
         </Menu>
       </View>
+      {selectedTag && (
+        <View style={[styles.filterIndicator, { backgroundColor: colors.primaryContainer }]}>
+          <View style={[styles.filterDot, { backgroundColor: selectedTag.color || colors.primary }]} />
+          <Text style={[styles.filterText, { color: colors.onPrimaryContainer }]}>
+            Filtering by tag: {selectedTag.name}
+          </Text>
+          <IconButton
+            icon="close"
+            size={16}
+            onPress={() => {
+              // Clear filter - we'll need to pass a clear function or use the store directly
+              const { setSelectedTagId } = useFilterStore.getState();
+              setSelectedTagId(null);
+            }}
+            style={styles.clearButton}
+          />
+        </View>
+      )}
       {children}
     </View>
   );
@@ -172,6 +196,7 @@ export function Notes() {
   const [searchQuery, setSearchQuery] = useState("");
   const { location } = useDeviceLocation();
   const { locationEnabled } = useSettingsStore();
+  const { selectedTagId } = useFilterStore();
   const theme = useTheme();
   const { showSnackbar } = useSnackbar();
   const {
@@ -187,6 +212,7 @@ export function Notes() {
         lat: location?.coords.latitude || 0,
         lng: location?.coords.longitude || 0,
       },
+      tagId: selectedTagId,
     })
   );
 
@@ -329,7 +355,8 @@ export function Notes() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortOption={sortOption}
-        setSortOption={setSortOption}>
+        setSortOption={setSortOption}
+        selectedTagId={selectedTagId}>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" />
           <Text variant="bodyMedium" style={styles.loadingText}>
@@ -346,7 +373,8 @@ export function Notes() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortOption={sortOption}
-        setSortOption={setSortOption}>
+        setSortOption={setSortOption}
+        selectedTagId={selectedTagId}>
         <View style={styles.centerContainer}>
           <Text variant="titleMedium" style={styles.errorText}>
             Error loading notes
@@ -363,7 +391,8 @@ export function Notes() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         sortOption={sortOption}
-        setSortOption={setSortOption}>
+        setSortOption={setSortOption}
+        selectedTagId={selectedTagId}>
         <View style={styles.centerContainer}>
           <Text variant="titleLarge">No notes yet</Text>
           <Text variant="bodyMedium" style={styles.emptyText}>
@@ -387,7 +416,8 @@ export function Notes() {
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
       sortOption={sortOption}
-      setSortOption={setSortOption}>
+      setSortOption={setSortOption}
+      selectedTagId={selectedTagId}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -430,6 +460,29 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 8,
   },
+  filterIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  filterDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  filterText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  clearButton: {
+    margin: 0,
+  },
   scrollContent: {
     flexGrow: 1,
   },
@@ -448,10 +501,6 @@ const styles = StyleSheet.create({
   content: {
     marginTop: 8,
   },
-  chip: {
-    marginTop: 8,
-    alignSelf: "flex-start",
-  },
   footer: {
     marginTop: 12,
     gap: 4,
@@ -462,10 +511,6 @@ const styles = StyleSheet.create({
   coordinates: {
     opacity: 0.5,
     fontSize: 10,
-  },
-  updatedAt: {
-    opacity: 0.6,
-    fontSize: 9,
   },
   loadingText: {
     marginTop: 16,
