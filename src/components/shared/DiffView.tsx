@@ -1,5 +1,5 @@
-import { StyleSheet, View, ScrollView } from "react-native";
-import { Text, Surface, useTheme } from "react-native-paper";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Text, useTheme } from "react-native-paper";
 import { Collapsible } from "../default/ui/collapsible";
 
 interface DiffViewProps {
