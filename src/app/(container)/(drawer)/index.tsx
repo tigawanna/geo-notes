@@ -1,5 +1,4 @@
 import { Notes } from "@/components/notes/Notes";
-import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { Surface } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,7 +13,6 @@ export default function HomeScreen() {
         paddingTop: top + 10,
         paddingBottom: bottom,
       }}>
-        <LoadingFallback/>
       <Notes />
     </Surface>
   );
