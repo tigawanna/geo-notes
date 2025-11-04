@@ -1,28 +1,35 @@
 import { ComponentProps } from "react";
 import { useTheme } from "react-native-paper";
-import Svg, { ClipPath, Defs, G, Path } from "react-native-svg";
+import Svg, { Circle, Defs, G, Path } from "react-native-svg";
 
-export function AppLogoSvg(props:ComponentProps<typeof Svg>) {
-  const {colors} = useTheme()
+export function AppLogoSvg(props: ComponentProps<typeof Svg>) {
+  const { colors } = useTheme();
   return (
     <Svg
-      viewBox="0 0 512 512"
-      // xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      stroke={colors.primary}
       strokeWidth={2}
       width={100}
       height={100}
+      viewBox="0 0 24 24"
+      id="Layer_1"
+      data-name="Layer 1"
+      // xmlns="http://www.w3.org/2000/svg"
+      fill={colors.primary}
+      stroke={colors.primary}
       {...props}>
-      <Defs>
-        <ClipPath id="a">
-          <Path d="M410.7 119.7v182.1l27.4 25.9-105.9 154.6-73.9-41.8-5.4-39.7L74.66 296.4l36.64-29L62.47 253l50.33-78.4-.8-61.8-47.25-60.96 38.15-19.05 99-3.05S307.1 83.8 310.1 83.09c3.1-.81 91.5-36.58 91.5-36.58l47.9 23.61z" />
-        </ClipPath>
-      </Defs>
-      <G clipPath="url(#a)" stroke={colors.primary} strokeWidth={1} opacity={0.6}>
-        <Path d="M0 0v512M20 0v512M40 0v512M60 0v512M80 0v512M100 0v512M120 0v512M140 0v512M160 0v512M180 0v512M200 0v512M220 0v512M240 0v512M260 0v512M280 0v512M300 0v512M320 0v512M340 0v512M360 0v512M380 0v512M400 0v512M420 0v512M440 0v512M460 0v512M480 0v512M500 0v512M0 0h512M0 20h512M0 40h512M0 60h512M0 80h512M0 100h512M0 120h512M0 140h512M0 160h512M0 180h512M0 200h512M0 220h512M0 240h512M0 260h512M0 280h512M0 300h512M0 320h512M0 340h512M0 360h512M0 380h512M0 400h512M0 420h512M0 440h512M0 460h512M0 480h512M0 500h512" />
+      <G id="SVGRepo_iconCarrier">
+        <Defs></Defs>
+        <Path
+          fill={colors.primary}
+          d="M15.91 11h4.88a2 2 0 012 2v7.81a2 2 0 01-2 2h-5.86l-1.42-2.12a1.81 1.81 0 00-3 0l-1.44 2.06H3.21a2 2 0 01-2-2V13a2 2 0 012-2h4.88"
+        />
+        <Path fill={colors.primary} d="M4.18 14.93L6.14 14.93" />
+        <Path fill={colors.primary} d="M4.18 18.84L6.14 18.84" />
+        <Path
+          fill={colors.primary}
+          d="M15.91 5.16C15.91 8.09 12 11 12 11S8.09 8.09 8.09 5.16a3.91 3.91 0 017.82 0z"
+        />
+        <Circle cx={12} cy={5.16} r={0.98} fill={colors.primary} />
       </G>
-      <Path d="M410.7 119.7v182.1l27.4 25.9-105.9 154.6-73.9-41.8-5.4-39.7L74.66 296.4l36.64-29L62.47 253l50.33-78.4-.8-61.8-47.25-60.96 38.15-19.05 99-3.05S307.1 83.8 310.1 83.09c3.1-.81 91.5-36.58 91.5-36.58l47.9 23.61z" />
     </Svg>
   );
 }
