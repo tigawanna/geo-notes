@@ -8,9 +8,10 @@ export type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distan
 export type GetNotesProps = {
   sortOption?: SortOption;
   location?: TLocation;
+  tagId?: string | null;
 };
 
-export async function getNotes({ sortOption, location }: GetNotesProps) {
+export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
   try {
     const notesColumn = getTableColumns(notes);
     // Reference point: Nairobi, Kenya coordinates
@@ -30,6 +31,11 @@ export async function getNotes({ sortOption, location }: GetNotesProps) {
         ),
       })
       .from(notes);
+
+    // Apply tag filter if specified
+    if (tagId) {
+      query.where(sql`json_extract(${notes.tags}, '$') LIKE '%' || ${tagId} || '%'`);
+    }
 
     // Apply sorting based on sortOption
     switch (sortOption) {

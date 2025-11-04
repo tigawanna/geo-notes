@@ -1,22 +1,35 @@
 import { MaterialCommunityIcon, MaterialIcon } from "@/components/default/ui/icon-symbol";
 import { AppLogoSvg } from "@/components/shared/svg/AppLogoSvg";
 import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
+import { useFilterStore } from "@/store/filter-store";
 import {
-    DrawerContentComponentProps,
-    DrawerContentScrollView,
-    DrawerItemList,
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItemList,
 } from "@react-navigation/drawer";
 import { useQuery } from "@tanstack/react-query";
 import { Drawer } from "expo-router/drawer";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Chip, Divider, Text, useTheme } from "react-native-paper";
+import { Divider, Text, useTheme } from "react-native-paper";
 // import { useDeviceLocation } from "@/hooks/use-device-location";
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { colors } = useTheme();
   const { data: tags } = useQuery(tagsQueryOptions);
+  const { selectedTagId, setSelectedTagId } = useFilterStore();
+
+  const handleTagPress = (tagId: string) => {
+    // Toggle tag filter - if already selected, clear it; otherwise select it
+    if (selectedTagId === tagId) {
+      setSelectedTagId(null);
+    } else {
+      setSelectedTagId(tagId);
+    }
+    // Close drawer after selection
+    props.navigation.closeDrawer();
+  };
 
   return (
     <DrawerContentScrollView {...props}>
@@ -46,28 +59,57 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       <DrawerItemList {...props} />
 
       {/* Tags Section */}
-      <Divider style={styles.divider} />
+      <Divider style={[styles.divider, { backgroundColor: colors.primary }]} />
       <View style={styles.tagsSection}>
         <Text variant="titleSmall" style={styles.tagsSectionTitle}>
           Quick Tags
         </Text>
+        {selectedTagId && (
+          <View style={[styles.clearFilterContainer, { backgroundColor: colors.primaryContainer }]}>
+            <Text variant="bodySmall" style={[styles.filteringText, { color: colors.onPrimaryContainer }]}>
+              Filtering by: {tags?.find(t => t.id === selectedTagId)?.name || 'Unknown'}
+            </Text>
+            <Text
+              variant="bodySmall"
+              style={[styles.clearFilterText, { color: colors.primary }]}
+              onPress={() => {
+                setSelectedTagId(null);
+                props.navigation.closeDrawer();
+              }}>
+              Clear Filter
+            </Text>
+          </View>
+        )}
         {tags && tags.length > 0 ? (
           <View style={styles.tagsContainer}>
-            {tags.slice(0, 8).map((tag) => (
-              <Chip
-                key={tag.id}
-                style={[
-                  styles.tagChip,
-                  { backgroundColor: tag.color || colors.primaryContainer },
-                ]}
-                textStyle={styles.tagChipText}
-                compact
-                onPress={() => {
-                  // Navigate to notes filtered by this tag (implement later)
-                  console.log("Filter by tag:", tag.name);
-                }}>
-                {tag.name}
-              </Chip>
+            {tags.slice(0, 8).map((tag, index) => (
+              <React.Fragment key={tag.id}>
+                <View
+                  style={[
+                    styles.tagChip,
+                    selectedTagId === tag.id && [styles.selectedTagChip, { backgroundColor: colors.primaryContainer }],
+                  ]}
+                  onTouchEnd={() => handleTagPress(tag.id)}>
+                  <View
+                    style={[
+                      styles.colorDot,
+                      { backgroundColor: tag.color || colors.primary },
+                    ]}
+                  />
+                  <Text style={styles.tagChipText}>{tag.name}</Text>
+                  {selectedTagId === tag.id && (
+                    <MaterialCommunityIcon
+                      name="check"
+                      size={14}
+                      color={colors.primary}
+                      style={styles.checkIcon}
+                    />
+                  )}
+                </View>
+                {index < Math.min(tags.length - 1, 7) && (
+                  <Divider style={[styles.tagDivider, { backgroundColor: colors.primary }]} />
+                )}
+              </React.Fragment>
             ))}
           </View>
         ) : (
@@ -153,10 +195,49 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tagChip: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  colorDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 6,
   },
   tagChipText: {
     fontSize: 12,
+  },
+  clearFilterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  filteringText: {
+    fontSize: 12,
+    flex: 1,
+  },
+  clearFilterText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
+  selectedTagChip: {
+    // backgroundColor will be set inline
+  },
+  checkIcon: {
+    marginLeft: 6,
+  },
+  tagDivider: {
+    marginVertical: 4,
+    height: 1,
   },
   noTagsText: {
     opacity: 0.6,
