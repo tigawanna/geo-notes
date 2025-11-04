@@ -1,11 +1,13 @@
 import {
-  createNotesMutationOptions,
-  getNotesQueryOptions,
+    createNotesMutationOptions,
+    getNotesQueryOptions,
 } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import type { TNote } from "@/lib/drizzle/schema";
 import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
 import { useSettingsStore } from "@/store/settings-store";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
+import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
@@ -14,14 +16,14 @@ import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
-  ActivityIndicator,
-  Card,
-  Chip,
-  FAB,
-  IconButton,
-  Searchbar,
-  Text,
-  useTheme,
+    ActivityIndicator,
+    Card,
+    Chip,
+    FAB,
+    IconButton,
+    Searchbar,
+    Text,
+    useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
 
@@ -53,6 +55,7 @@ function NotesScaffold({
 }: NotesScaffoldProps) {
   const { colors } = useTheme();
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
+  const navigation = useNavigation<DrawerNavigationProp<any>>();
 
   const openMenu = () => {
     setSortMenuVisible(true);
@@ -67,6 +70,11 @@ function NotesScaffold({
   return (
     <View style={styles.scaffoldContainer}>
       <View style={styles.searchRow}>
+        <IconButton
+          icon="menu"
+          onPress={() => navigation.openDrawer()}
+          size={24}
+        />
         <Searchbar
           placeholder="Search notes"
           onChangeText={setSearchQuery}

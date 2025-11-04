@@ -5,7 +5,7 @@ export default function ContainerLayout() {
   return (
     <Stack>
       <Stack.Protected guard={isAuthenticated}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

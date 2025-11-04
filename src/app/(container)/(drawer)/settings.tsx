@@ -7,10 +7,12 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Icon, List, Surface, Switch, useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Settings() {
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useThemeStore();
+  const { bottom } = useSafeAreaInsets();
   const {
     dynamicColors,
     toggleDynamicColors,
@@ -68,19 +70,15 @@ export default function Settings() {
             try {
               setIsImporting(true);
               await importDatabase();
-              Alert.alert(
-                "Success",
-                "Database imported successfully. Please restart the app.",
-                [
-                  {
-                    text: "Restart Now",
-                    onPress: () => {
-                      // Force app to reload by navigating to root
-                      router.replace("/");
-                    },
+              Alert.alert("Success", "Database imported successfully. Please restart the app.", [
+                {
+                  text: "Restart Now",
+                  onPress: () => {
+                    // Force app to reload by navigating to root
+                    router.replace("/");
                   },
-                ]
-              );
+                },
+              ]);
             } catch (error) {
               logger.error("Import failed:", error);
               Alert.alert("Error", "Failed to import database");
@@ -94,8 +92,8 @@ export default function Settings() {
   };
 
   return (
-    <Surface style={{ flex: 1 }}>
-      <ScrollView style={[styles.container, {}]}>
+    <Surface style={{ flex: 1, paddingBottom: bottom }}>
+      <ScrollView style={[styles.container]}>
         <List.Section>
           <List.Subheader style={[styles.listSubHeader]}>Appearance</List.Subheader>
           <List.Item
