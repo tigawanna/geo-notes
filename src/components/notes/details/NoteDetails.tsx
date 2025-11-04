@@ -4,7 +4,16 @@ import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Appbar, Button, Card, Divider, Snackbar, Text, useTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Appbar,
+  Button,
+  Card,
+  Divider,
+  Snackbar,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { NoteDetailsDialogs } from "./NoteDetailsDialogs";
 import { NoteDetailsForm } from "./NoteDetailsForm";
 import { NoteDetailsHeader } from "./NoteDetailsHeader";
@@ -48,6 +57,8 @@ export function NoteDetails() {
     setContent,
     quickCopy,
     setQuickCopy,
+    noteQuickCopyMode,
+    setNoteQuickCopyMode,
     savedLocation,
     setSavedLocation,
   } = useNoteDetailsForm({ note });
@@ -75,7 +86,12 @@ export function NoteDetails() {
 
   // Wrapper functions to pass the right parameters
   const handleSave = () => {
-    saveNote(title, content, quickCopy, savedLocation);
+    saveNote(title, content, quickCopy, savedLocation, noteQuickCopyMode);
+  };
+
+  const handleQuickCopyModeChange = (mode: "title" | "phone" | "manual" | null) => {
+    setNoteQuickCopyMode(mode);
+    setHasUnsavedChanges(true);
   };
 
   const handleAddLocation = () => {
@@ -110,7 +126,7 @@ export function NoteDetails() {
     );
   }
 
-  if (queryError || !note) {
+  if ((queryError || !note)) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Appbar.Header>
@@ -131,6 +147,11 @@ export function NoteDetails() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* {isPending && (
+        <View style={{ paddingTop: 20, width: "100%", alignItems: "center" }}>
+          <LoadingIndicatorDots />
+        </View>
+      )} */}
       <NoteDetailsHeader
         onBack={handleBack}
         onSave={handleSave}
@@ -150,37 +171,20 @@ export function NoteDetails() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
-          {/* Updated Date Card */}
-          {note.updated && (
-            <Card style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]} elevation={1}>
-              <Card.Content>
-                <View style={styles.metadataRow}>
-                  <Text
-                    variant="labelMedium"
-                    style={[styles.metadataLabel, { color: theme.colors.onSurfaceVariant }]}>
-                    📅 Last Updated
-                  </Text>
-                  <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                    {new Date(note.updated).toLocaleString()}
-                  </Text>
-                </View>
-              </Card.Content>
-            </Card>
-          )}
-
-          {/* Main Content Card */}
-          <Card style={styles.card} elevation={2}>
-            <Card.Content style={styles.cardContent}>
-              <NoteDetailsForm
-                title={title}
-                setTitle={setTitle}
-                content={content}
-                setContent={setContent}
-                quickCopy={quickCopy}
-                setQuickCopy={setQuickCopy}
-              />
-            </Card.Content>
-          </Card>
+          {/* Main Content - Flush with screen */}
+          <View style={styles.mainContent}>
+            <NoteDetailsForm
+              title={title}
+              setTitle={setTitle}
+              content={content}
+              setContent={setContent}
+              quickCopy={quickCopy}
+              setQuickCopy={setQuickCopy}
+              updatedAt={note?.updated}
+              noteQuickCopyMode={noteQuickCopyMode}
+              onQuickCopyModeChange={handleQuickCopyModeChange}
+            />
+          </View>
 
           <Divider style={styles.divider} />
 
@@ -189,8 +193,8 @@ export function NoteDetails() {
             <Card.Content>
               <NoteLocationSection
                 savedLocation={{
-                  lat: note.latitude,
-                  lng: note.longitude,
+                  lat: note?.latitude,
+                  lng: note?.longitude,
                 }}
                 currentLocation={location}
                 isLocationLoading={isLocationLoading}
@@ -228,13 +232,13 @@ export function NoteDetails() {
         savedLocation={savedLocation}
         currentLocation={location}
       />
-      
+
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
         duration={2000}
         action={{
-          label: 'OK',
+          label: "OK",
           onPress: () => setSnackbarVisible(false),
         }}>
         Copied to clipboard!
@@ -254,31 +258,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
     paddingBottom: 32,
   },
+  mainContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
   card: {
+    marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
     overflow: "hidden",
   },
-  cardContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  metadataRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  metadataLabel: {
-    fontWeight: "600",
-    fontSize: 13,
-  },
   divider: {
-    marginVertical: 8,
+    marginVertical: 16,
+    marginHorizontal: 16,
     height: 1,
   },
   loadingContainer: {

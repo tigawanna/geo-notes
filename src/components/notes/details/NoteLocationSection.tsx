@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
 
 interface NoteLocationSectionProps {
-  savedLocation: { lat: string; lng: string } | null;
+  savedLocation: { lat?: string; lng?: string } | null;
   currentLocation: LocationObject | undefined;
   isLocationLoading: boolean;
   onAddLocation: () => void;

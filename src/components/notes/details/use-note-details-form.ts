@@ -10,11 +10,15 @@ interface UseNoteDetailsFormProps {
 
 export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
   logger.log("Initializing useNoteDetailsForm with note:", note);
-  const { quickCopyMode } = useSettingsStore();
+  const { quickCopyMode: globalQuickCopyMode } = useSettingsStore();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [quickCopy, setQuickCopy] = useState("");
+  const [noteQuickCopyMode, setNoteQuickCopyMode] = useState<"title" | "phone" | "manual" | null>(null);
   const [savedLocation, setSavedLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Use note-specific mode if set, otherwise use global mode
+  const effectiveQuickCopyMode = noteQuickCopyMode ?? globalQuickCopyMode;
 
   // Initialize form with note data
   useEffect(() => {
@@ -22,6 +26,7 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
       setTitle(note.title || "");
       setContent(note.content || "");
       setQuickCopy(note.quickCopy || "");
+      setNoteQuickCopyMode(note.quickCopyMode as "title" | "phone" | "manual" | null);
 
       // Parse saved location from GeoJSON if it exists
       if (note.location) {
@@ -35,15 +40,15 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
 
   // Auto-generate quick copy based on mode
   useEffect(() => {
-    if (quickCopyMode === "title" && title && !quickCopy) {
+    if (effectiveQuickCopyMode === "title" && title && !quickCopy) {
       setQuickCopy(title);
-    } else if (quickCopyMode === "phone" && content) {
+    } else if (effectiveQuickCopyMode === "phone" && content) {
       const phone = extractPhoneNumber(content);
       if (phone && !quickCopy) {
         setQuickCopy(phone);
       }
     }
-  }, [title, content, quickCopyMode, quickCopy]);
+  }, [title, content, effectiveQuickCopyMode, quickCopy]);
 
   return {
     title,
@@ -52,6 +57,8 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
     setContent,
     quickCopy,
     setQuickCopy,
+    noteQuickCopyMode,
+    setNoteQuickCopyMode,
     savedLocation,
     setSavedLocation,
   };
