@@ -5,12 +5,12 @@ import * as Sharing from "expo-sharing";
 import { DATABASE_BACKUP_NAME, DATABASE_LOCATION, DATABASE_NAME, opsqliteDb } from "./client";
 
 const APP_FILE_PATH = FileSystem.documentDirectory;
-const DB_FILE_PATH = `file://${DATABASE_LOCATION}/${DATABASE_NAME}`;
+const DB_FILE_PATH = `file://${DATABASE_LOCATION}${DATABASE_NAME}`;
 const DB_BACKUP_NAME = `${APP_FILE_PATH}SQLite/${DATABASE_BACKUP_NAME}`;
 
 export async function backupDatabase() {
   try {
-    const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
+    const timestamp = Date.now().toString();
     const backUpNameWithTimestamp = `${DB_BACKUP_NAME.replace(".db", "")}-${timestamp}.db`;
     await FileSystem.copyAsync({
       from: DB_FILE_PATH,
@@ -39,7 +39,7 @@ export async function importDatabase(): Promise<void> {
     }
 
     const backupPath = result.assets[0].uri;
-    
+
     // Verify the backup file exists
     const backupExists = await FileSystem.getInfoAsync(backupPath);
     if (!backupExists.exists) {
@@ -50,20 +50,21 @@ export async function importDatabase(): Promise<void> {
     opsqliteDb.close();
 
     // Define paths for database and WAL files
-    const databasePath = `${FileSystem.documentDirectory}SQLite/${DATABASE_NAME}`;
+    // const databasePath = `${FileSystem.documentDirectory}SQLite/${DATABASE_NAME}`;
     const walFilePath = `${FileSystem.documentDirectory}SQLite/${DATABASE_NAME}-wal`;
     const shmFilePath = `${FileSystem.documentDirectory}SQLite/${DATABASE_NAME}-shm`;
 
     // Delete WAL and SHM files to ensure data doesn't get corrupted
     await FileSystem.deleteAsync(walFilePath, { idempotent: true });
     await FileSystem.deleteAsync(shmFilePath, { idempotent: true });
+    // await FileSystem.deleteAsync(DB_FILE_PATH, { idempotent: true });
 
-    logger.log("Restoring database from:", backupPath);
+    logger.log("Restoring database from:", { backupPath, DB_FILE_PATH });
 
     // Copy the backup file to the database location
     await FileSystem.copyAsync({
       from: backupPath,
-      to: databasePath,
+      to: DB_FILE_PATH,
     });
 
     logger.log("Database restored successfully");
