@@ -2,25 +2,27 @@ import type { TNote } from "@/lib/drizzle/schema";
 import type { TLocation } from "@/types/location";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import {
-    createNote,
-    deleteAllNotes,
-    deleteNote,
-    getNote,
-    getNotes,
-    GetNotesProps,
-    updateNote,
+  createNote,
+  deleteAllNotes,
+  deleteNote,
+  getNote,
+  getNotes,
+  GetNotesProps,
+  updateNote,
 } from "./notes-api";
 
 export const getNotesQueryOptions = ({ sortOption, location }: GetNotesProps) =>
   queryOptions({
     queryKey: ["notes", sortOption],
     queryFn: () => getNotes({ sortOption, location }),
+    placeholderData: (prev) => prev,
   });
 
 export const getNoteQueryOptions = (id: string, location?: TLocation) =>
   queryOptions({
     queryKey: ["notes", "detail", id, location] as const,
     queryFn: () => getNote(id, location),
+    placeholderData: (prev) => prev,
     enabled: !!id,
   });
 
@@ -51,3 +53,6 @@ export const deleteNoteMutationOptions = mutationOptions({
     invalidates: [["notes"]],
   },
 });
+
+
+

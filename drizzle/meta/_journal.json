@@ -15,6 +15,13 @@
       "when": 1762268574559,
       "tag": "0001_open_felicia_hardy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762277168145,
+      "tag": "0002_redundant_layla_miller",
+      "breakpoints": true
     }
   ]
 }

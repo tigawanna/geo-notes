@@ -11,6 +11,8 @@ export const notes = table(
     id: t.text().primaryKey().notNull(),
     title: t.text("title").default("Untitled"),
     quickCopy: t.text("quick_copy"), // field that will be copied on long click
+    quickCopyMode: t.text("quick_copy_mode", { enum: ["title", "phone", "manual"] }), // note-specific quick copy mode, null means use global setting
+    tags: t.text("tags"), // JSON array of tags stored as text
     content: t.text("content"),
     created: t.text().default(sql`(CURRENT_TIMESTAMP)`),
     updated: t.text().default(sql`(CURRENT_TIMESTAMP)`),
