@@ -5,18 +5,17 @@ import { eq, getTableColumns, sql } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 export type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distance-desc";
 
-
 export type GetNotesProps = {
   sortOption?: SortOption;
   location?: TLocation;
-}
+};
 
 export async function getNotes({ sortOption, location }: GetNotesProps) {
   try {
     const notesColumn = getTableColumns(notes);
     // Reference point: Nairobi, Kenya coordinates
     // SpatiaLite uses [longitude, latitude] order in GeoJSON (X, Y)
-    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`
+    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
     const query = db
       .select({
         ...notesColumn,
@@ -129,9 +128,50 @@ export async function deleteNote(id: number) {
   }
 }
 
-export async function getNote(id: string) {
+export async function getNote(id: string, location?: TLocation) {
   try {
-    const res = await db.select().from(notes).where(eq(notes.id, id)).limit(1);
+    const notesColumn = getTableColumns(notes);
+    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
+    let query = db
+      .select({
+        ...notesColumn,
+        // Extract Y coordinate (latitude) from point geometry blob
+        latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
+        // Extract X coordinate (longitude) from point geometry blob
+        longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
+        // Calculate great-circle distance using SpatiaLite's geodesic functions
+        // ST_Distance returns distance in meters by default
+        distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
+          "distance_meters"
+        ),
+      })
+      .from(notes)
+      .where(eq(notes.id, id))
+      .limit(1);
+
+    // if (location) {
+    //   // Reference point: Nairobi, Kenya coordinates
+    //   // SpatiaLite uses [longitude, latitude] order in GeoJSON (X, Y)
+    //   const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`
+    //   query = db
+    //     .select({
+    //       ...notesColumn,
+    //       // Extract Y coordinate (latitude) from point geometry blob
+    //       latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
+    //       // Extract X coordinate (longitude) from point geometry blob
+    //       longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
+    //       // Calculate great-circle distance using SpatiaLite's geodesic functions
+    //       // ST_Distance returns distance in meters by default
+    //       distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
+    //         "distance_meters"
+    //       ),
+    //     })
+    //     .from(notes)
+    //     .where(eq(notes.id, id))
+    //     .limit(1);
+    // }
+
+    const res = await query;
     console.log("Fetched note with id:", id);
     return {
       result: res[0] || null,

@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 // Utility to extract phone numbers from text
 export const extractPhoneNumber = (text: string): string | null => {
   const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
@@ -47,6 +49,7 @@ export const parseGeoJSONLocation = (
   location: any
 ): { lat: number; lng: number } | null => {
   try {
+    logger.log("Parsing GeoJSON location:", location);
     const geoJson = typeof location === "string" ? JSON.parse(location) : location;
     if (geoJson.type === "Point" && Array.isArray(geoJson.coordinates)) {
       return {
