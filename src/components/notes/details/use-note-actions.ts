@@ -1,6 +1,6 @@
 import {
-    deleteNoteMutationOptions,
-    updateNoteMutationOptions,
+  deleteNoteMutationOptions,
+  updateNoteMutationOptions,
 } from "@/data-access-layer/notes-query-optons";
 import type { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
