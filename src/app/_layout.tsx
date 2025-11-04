@@ -50,7 +50,7 @@ export default function RootLayout() {
               <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
               <InitDatabase>
                 <Stack>
-                  <Stack.Screen name="(container)" options={{ headerShown: false }} />{" "}
+                  <Stack.Screen name="(container)" options={{ headerShown: false }} />
                   <Stack.Screen name="note/edit" options={{ headerShown: false }} />
                   <Stack.Screen name="+not-found" />
                 </Stack>
