@@ -17,7 +17,7 @@ interface LoadingFallbackProps {
   logoSize?:number;
 
 }
-export function LoadingFallback({ initialScreen,logoSize=250,action }: LoadingFallbackProps) {
+export function LoadingFallback({ initialScreen,logoSize=150,action }: LoadingFallbackProps) {
   const { colors } = useTheme();
   const pulseValue = useSharedValue(1);
   const fadeValue = useSharedValue(0.6);
