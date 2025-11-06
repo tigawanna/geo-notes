@@ -1,6 +1,8 @@
-import { calculateDistance, formatDistance } from "@/utils/note-utils";
+import { useDeviceLocation } from "@/hooks/use-device-location";
+import { logger } from "@/utils/logger";
+import React from "react";
 import { View } from "react-native";
-import { Button, Dialog, IconButton, Portal, Text, useTheme } from "react-native-paper";
+import { Button, Dialog, IconButton, Portal, Text, TextInput, useTheme } from "react-native-paper";
 
 interface NoteDetailsDialogsProps {
   deleteDialogVisible: boolean;
@@ -11,14 +13,12 @@ interface NoteDetailsDialogsProps {
   onCancelNavigation: () => void;
   onDiscardChanges: () => void;
   onSave: () => void;
-  locationUpdateDialogVisible: boolean;
-  setLocationUpdateDialogVisible: (visible: boolean) => void;
-  onConfirmLocationUpdate: () => void;
   savedLocation: { lat: number; lng: number } | null;
   currentLocation: any;
   locationDialogVisible: boolean;
   setLocationDialogVisible: (visible: boolean) => void;
-  onRefreshLocation: () => void;
+  onSaveLocation: (location: { lat: number; lng: number }) => void;
+  noteId?: string;
 }
 
 export function NoteDetailsDialogs({
@@ -30,17 +30,59 @@ export function NoteDetailsDialogs({
   onCancelNavigation,
   onDiscardChanges,
   onSave,
-  locationUpdateDialogVisible,
-  setLocationUpdateDialogVisible,
-  onConfirmLocationUpdate,
   savedLocation,
   currentLocation,
   locationDialogVisible,
   setLocationDialogVisible,
-  onRefreshLocation,
+  onSaveLocation,
+  noteId,
 }: NoteDetailsDialogsProps) {
+  logger.log("saved location:", savedLocation);
   const theme = useTheme();
+  const {
+    location: freshLocation,
+    isLoading: isLocationRefreshing,
+    isRefreshing: isLocationRefreshingAgain,
+    refetch: refetchLocation,
+  } = useDeviceLocation();
+  const [manualLat, setManualLat] = React.useState(savedLocation?.lat.toString() || "");
+  const [manualLng, setManualLng] = React.useState(savedLocation?.lng.toString() || "");
 
+  // Update manual inputs when saved location changes
+  React.useEffect(() => {
+    if (savedLocation) {
+      setManualLat(savedLocation.lat.toString());
+      setManualLng(savedLocation.lng.toString());
+    }
+  }, [savedLocation]);
+
+  const handleUseCurrentLocation = () => {
+    if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
+      const coords = freshLocation.coords;
+      setManualLat(coords.latitude.toString());
+      setManualLng(coords.longitude.toString());
+    }
+  };
+
+  const handleSave = () => {
+    const lat = parseFloat(manualLat);
+    const lng = parseFloat(manualLng);
+    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      onSaveLocation({ lat, lng });
+      setLocationDialogVisible(false);
+    }
+  };
+
+  const hasValidCoordinates = (() => {
+    const lat = parseFloat(manualLat);
+    const lng = parseFloat(manualLng);
+    return !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  })();
+
+  const hasChanges = savedLocation
+    ? parseFloat(manualLat) !== savedLocation.lat || parseFloat(manualLng) !== savedLocation.lng
+    : manualLat.trim() !== "" || manualLng.trim() !== "";
+  const locationPending = isLocationRefreshing || isLocationRefreshingAgain;
   return (
     <Portal>
       {/* Delete Confirmation Dialog */}
@@ -74,104 +116,89 @@ export function NoteDetailsDialogs({
         </Dialog.Actions>
       </Dialog>
 
-      {/* Location Update Confirmation Dialog */}
-      <Dialog
-        visible={locationUpdateDialogVisible}
-        onDismiss={() => setLocationUpdateDialogVisible(false)}>
-        <Dialog.Title>Update Location</Dialog.Title>
-        <Dialog.Content>
-          <Text variant="bodyMedium" style={{ marginBottom: 12 }}>
-            Update the note&apos;s location to your current position?
-          </Text>
-          {savedLocation &&
-            currentLocation &&
-            typeof currentLocation === "object" &&
-            "coords" in currentLocation && (
-              <>
-                <Text variant="bodySmall" style={{ marginBottom: 4 }}>
-                  Current saved: {savedLocation.lat.toFixed(6)}, {savedLocation.lng.toFixed(6)}
-                </Text>
-                <Text variant="bodySmall" style={{ marginBottom: 4 }}>
-                  New location: {(currentLocation as any).coords.latitude.toFixed(6)},{" "}
-                  {(currentLocation as any).coords.longitude.toFixed(6)}
-                </Text>
-                <Text variant="bodySmall" style={{ color: "#FF9800", fontWeight: "500" }}>
-                  Distance:{" "}
-                  {formatDistance(
-                    calculateDistance(
-                      savedLocation.lat,
-                      savedLocation.lng,
-                      (currentLocation as any).coords.latitude,
-                      (currentLocation as any).coords.longitude
-                    )
-                  )}
-                </Text>
-              </>
-            )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={() => setLocationUpdateDialogVisible(false)}>Cancel</Button>
-          <Button onPress={onConfirmLocationUpdate}>Update</Button>
-        </Dialog.Actions>
-      </Dialog>
-
-      {/* Location Comparison Dialog */}
+      {/* Location Edit Dialog */}
       <Dialog visible={locationDialogVisible} onDismiss={() => setLocationDialogVisible(false)}>
-        <Dialog.Title>Location Details</Dialog.Title>
+        <Dialog.Title>Edit Location</Dialog.Title>
         <Dialog.Content>
-          {savedLocation && (
-            <View style={{ marginBottom: 16 }}>
-              <Text variant="labelMedium" style={{ marginBottom: 4, fontWeight: "600" }}>
-                💾 Saved Location
+          {/* Current Location Display */}
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <Text variant="labelMedium" style={{ fontWeight: "600", marginRight: 8 }}>
+                � Current Location
               </Text>
-              <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 12 }}>
+              <IconButton
+                icon="refresh"
+                size={16}
+                onPress={() => refetchLocation()}
+                loading={locationPending}
+                style={{ margin: 0 }}
+              />
+            </View>
+            <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 8 }}>
+              {freshLocation && typeof freshLocation === "object" && "coords" in freshLocation
+                ? `${freshLocation.coords.latitude.toFixed(
+                    6
+                  )}, ${freshLocation.coords.longitude.toFixed(6)}`
+                : "No location available"}
+            </Text>
+            <Button
+              mode="outlined"
+              onPress={handleUseCurrentLocation}
+              disabled={!freshLocation || locationPending}
+              style={{ marginTop: 8 }}>
+              Use Current Location
+            </Button>
+          </View>
+
+          {/* Manual Location Input */}
+          <View style={{ marginBottom: 16 }}>
+            <Text variant="labelMedium" style={{ fontWeight: "600", marginBottom: 8 }}>
+              Manual Coordinates
+            </Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TextInput
+                label="Latitude"
+                value={manualLat}
+                onChangeText={setManualLat}
+                keyboardType="numeric"
+                mode="outlined"
+                dense
+                style={{ flex: 1 }}
+              />
+              <TextInput
+                label="Longitude"
+                value={manualLng}
+                onChangeText={setManualLng}
+                keyboardType="numeric"
+                mode="outlined"
+                dense
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+
+          {/* Saved Location Display */}
+          {savedLocation && (
+            <View
+              style={{
+                padding: 12,
+                backgroundColor: theme.colors.surfaceVariant,
+                borderRadius: 8,
+              }}>
+              <Text variant="bodySmall" style={{ fontWeight: "600", marginBottom: 4 }}>
+                Currently Saved:
+              </Text>
+              <Text variant="bodySmall" style={{ fontFamily: "monospace" }}>
                 {savedLocation.lat.toFixed(6)}, {savedLocation.lng.toFixed(6)}
               </Text>
             </View>
           )}
-
-          {currentLocation &&
-            typeof currentLocation === "object" &&
-            "coords" in currentLocation && (
-              <View style={{ marginBottom: 16 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                  <Text variant="labelMedium" style={{ fontWeight: "600", marginRight: 8 }}>
-                    📡 Current Location
-                  </Text>
-                  <IconButton
-                    icon="refresh"
-                    size={16}
-                    onPress={onRefreshLocation}
-                    style={{ margin: 0 }}
-                  />
-                </View>
-                <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 12 }}>
-                  {(currentLocation as any).coords.latitude.toFixed(6)},{" "}
-                  {(currentLocation as any).coords.longitude.toFixed(6)}
-                </Text>
-              </View>
-            )}
-
-          {savedLocation &&
-            currentLocation &&
-            typeof currentLocation === "object" &&
-            "coords" in currentLocation && (
-              <View style={{ padding: 12, backgroundColor: theme.colors.surfaceVariant, borderRadius: 8 }}>
-                <Text variant="bodySmall" style={{ color: "#FF9800", fontWeight: "500" }}>
-                  Distance: {formatDistance(
-                    calculateDistance(
-                      savedLocation.lat,
-                      savedLocation.lng,
-                      (currentLocation as any).coords.latitude,
-                      (currentLocation as any).coords.longitude
-                    )
-                  )}
-                </Text>
-              </View>
-            )}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={() => setLocationDialogVisible(false)}>Close</Button>
+          <Button onPress={() => setLocationDialogVisible(false)}>Cancel</Button>
+          <Button onPress={handleSave} disabled={!hasValidCoordinates || !hasChanges}>
+            Save Location
+          </Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>
