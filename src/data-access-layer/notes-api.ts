@@ -16,10 +16,6 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
   try {
     const notesColumn = getTableColumns(notes);
 
-    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng||0},${location?.lat||0}]}`;
-
-    logger.log("Using GeoJSON:", currLocationGeoJSON);
-
     const query = db
       .select({
         ...notesColumn,
@@ -27,11 +23,18 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
         latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
         // Extract X coordinate (longitude) from point geometry blob
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
-        // Calculate great-circle distance using SpatiaLite's geodesic functions
-        // ST_Distance returns distance in meters by default
-        distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
-          "distance_meters"
-        ),
+        // Calculate great-circle distance using Haversine formula
+        // Result is in meters (Earth's radius * 1000 for meters)
+        distance: sql`(
+          6371000 * 2 * ASIN(
+            SQRT(
+              POWER(SIN((RADIANS(ST_Y(${notes.location})) - RADIANS(${location?.lat||0})) / 2), 2) +
+              COS(RADIANS(${location?.lat||0})) * 
+              COS(RADIANS(ST_Y(${notes.location}))) *
+              POWER(SIN((RADIANS(ST_X(${notes.location})) - RADIANS(${location?.lng||0})) / 2), 2)
+            )
+          )
+        )`.as("distance_meters"),
       })
       .from(notes);
 
@@ -41,36 +44,33 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
     }
 
     // Apply sorting based on sortOption
-    // switch (sortOption) {
-    //   case "recent-desc":
-    //     // Most recent first
-    //     query.orderBy(sql`updated DESC`);
-    //     break;
-    //   case "recent-asc":
-    //     // Oldest first
-    //     query.orderBy(sql`updated ASC`);
-    //     break;
-    //   case "distance-asc":
-    //     // Closest first, then most recent
-    //     query.orderBy(sql`distance_meters ASC`);
-    //     query.orderBy(sql`updated DESC`);
-    //     break;
-    //   case "distance-desc":
-    //     // Farthest first, then most recent
-    //     query.orderBy(sql`distance_meters DESC`);
-    //     query.orderBy(sql`updated DESC`);
-    //     break;
-    //   default:
-    //     // Default to closest first
-    //     query.orderBy(sql`distance_meters ASC`);
-    //     query.orderBy(sql`updated DESC`);
-    // }
+    switch (sortOption) {
+      case "recent-desc":
+        // Most recent first
+        query.orderBy(sql`updated DESC`);
+        break;
+      case "recent-asc":
+        // Oldest first
+        query.orderBy(sql`updated ASC`);
+        break;
+      case "distance-asc":
+        // Closest first, then most recent
+        query.orderBy(sql`distance_meters ASC, updated DESC`);
+        break;
+      case "distance-desc":
+        // Farthest first, then most recent
+        query.orderBy(sql`distance_meters DESC, updated DESC`);
+        break;
+      default:
+        // Default to closest first
+        query.orderBy(sql`distance_meters ASC, updated DESC`);
+    }
 
     // Execute spatial query to fetch notes with distance calculations
     const res = await query;
 
     // Uncomment for debugging spatial query results:
-    // logger.log("Fetched notes:", res);
+    logger.log("Fetched notes:", res);
 
     return {
       result: res,

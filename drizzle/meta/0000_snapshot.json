@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "22dc6bcc-e10d-453e-bee1-2653cad6ae3e",
+  "id": "c5020fe2-c576-46e0-a352-86c84cba86a5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "notes": {
@@ -24,6 +24,20 @@
         },
         "quick_copy": {
           "name": "quick_copy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "quick_copy_mode": {
+          "name": "quick_copy_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tags": {
+          "name": "tags",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -54,7 +68,7 @@
         },
         "location": {
           "name": "location",
-          "type": "text",
+          "type": "blob",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -79,6 +93,60 @@
           "name": "idx_notes_created",
           "columns": [
             "created"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "tags": {
+      "name": "tags",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created": {
+          "name": "created",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_tags_name": {
+          "name": "idx_tags_name",
+          "columns": [
+            "name"
           ],
           "isUnique": false
         }
