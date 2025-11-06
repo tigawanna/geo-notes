@@ -2,6 +2,7 @@ import { customTheme, type CustomThemeKey } from "@/constants/Colors";
 import { backupDatabase, importDatabase } from "@/lib/op-sqlite/backup";
 import { useSettingsStore, useThemeStore } from "@/store/settings-store";
 import { logger } from "@/utils/logger";
+import { useQueryClient } from "@tanstack/react-query";
 import * as Application from "expo-application";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { Divider, Icon, List, Surface, Switch, useTheme } from "react-native-pap
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Settings() {
+  const qc = useQueryClient();
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const { bottom } = useSafeAreaInsets();
@@ -75,6 +77,7 @@ export default function Settings() {
                   text: "Restart Now",
                   onPress: () => {
                     // Force app to reload by navigating to root
+                    qc.invalidateQueries({ queryKey: ["notes"] });
                     router.replace("/");
                   },
                 },
