@@ -51,7 +51,7 @@ export default function RootLayout() {
               <InitDatabase>
                 <Stack>
                   <Stack.Screen name="(container)" options={{ headerShown: false }} />
-                  <Stack.Screen name="note/edit" options={{ headerShown: false }} />
+                  <Stack.Screen name="note/details" options={{ headerShown: false }} />
                   <Stack.Screen name="+not-found" />
                 </Stack>
               </InitDatabase>

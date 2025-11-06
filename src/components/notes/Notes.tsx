@@ -16,7 +16,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
   ActivityIndicator,
@@ -270,21 +270,7 @@ export function Notes() {
     return filteredNotes;
   }, [data?.result, searchQuery]);
 
-  const masonryColumns = useMemo(() => {
-    if (!notes || notes.length === 0) return [[], []];
-
-    const columns: [NoteWithDistance[], NoteWithDistance[]] = [[], []];
-
-    notes.forEach((note, index) => {
-      // Alternate between columns for balanced distribution
-      const columnIndex = index % 2;
-      columns[columnIndex].push(note);
-    });
-
-    return columns;
-  }, [notes]);
-
-  const renderNoteCard = (item: NoteWithDistance) => {
+  const renderNoteCard = ({ item, index }: { item: NoteWithDistance, index: number }) => {
     const handleLongPress = async () => {
       if (item.quickCopy) {
         await Clipboard.setStringAsync(item.quickCopy);
@@ -294,9 +280,18 @@ export function Notes() {
 
     return (
       <Pressable
-        onPress={() => router.push(`/note/edit?id=${item.id}` as any)}
-        onLongPress={handleLongPress}>
-        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated">
+        onPress={() => router.push(`/note/details?id=${item.id}` as any)}
+        onLongPress={handleLongPress}
+        style={{ marginHorizontal: CARD_SPACING / 2 }}
+        >
+        <Card
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.colors.surface,
+            },
+          ]}
+          mode="elevated">
           <Card.Content>
             <Text variant="titleMedium" numberOfLines={2}>
               {item.title || "Untitled"}
@@ -331,24 +326,6 @@ export function Notes() {
           </Card.Content>
         </Card>
       </Pressable>
-    );
-  };
-
-  const renderColumn = (columnData: NoteWithDistance[], columnIndex: number) => {
-    if (columnData.length === 0) {
-      return <View style={styles.column} key={columnIndex} />;
-    }
-
-    return (
-      <View style={styles.column} key={columnIndex}>
-        <FlashList
-          data={columnData}
-          renderItem={({ item }) => renderNoteCard(item)}
-          keyExtractor={(item: NoteWithDistance) => `${item.id}-${columnIndex}`}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-        />
-      </View>
     );
   };
 
@@ -421,8 +398,15 @@ export function Notes() {
       sortOption={sortOption}
       setSortOption={setSortOption}
       selectedTagId={selectedTagId}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
+      <FlashList
+        data={notes}
+        renderItem={renderNoteCard}
+        keyExtractor={(item: NoteWithDistance) => item.id}
+        masonry
+        numColumns={2}
+
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.masonryContainer}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -430,12 +414,8 @@ export function Notes() {
             colors={[theme.colors.primary]}
             tintColor={theme.colors.primary}
           />
-        }>
-        <View style={styles.masonryContainer}>
-          {renderColumn(masonryColumns[0], 0)}
-          {renderColumn(masonryColumns[1], 1)}
-        </View>
-      </ScrollView>
+        }
+      />
 
       <FAB
         icon="plus"
@@ -486,16 +466,9 @@ const styles = StyleSheet.create({
   clearButton: {
     margin: 0,
   },
-  scrollContent: {
-    flexGrow: 1,
-  },
   masonryContainer: {
-    flexDirection: "row",
     padding: CONTAINER_PADDING,
     gap: CARD_SPACING,
-  },
-  column: {
-    flex: 1,
   },
   card: {
     marginBottom: CARD_SPACING,
