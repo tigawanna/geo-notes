@@ -70,7 +70,7 @@ function NotesScaffold({
     closeMenu();
   };
 
-  const selectedTag = tags?.find(tag => tag.id === selectedTagId);
+  const selectedTag = tags?.find((tag) => tag.id === selectedTagId);
 
   return (
     <View style={styles.scaffoldContainer}>
@@ -170,7 +170,9 @@ function NotesScaffold({
       </View>
       {selectedTag && (
         <View style={[styles.filterIndicator, { backgroundColor: colors.primaryContainer }]}>
-          <View style={[styles.filterDot, { backgroundColor: selectedTag.color || colors.primary }]} />
+          <View
+            style={[styles.filterDot, { backgroundColor: selectedTag.color || colors.primary }]}
+          />
           <Text style={[styles.filterText, { color: colors.onPrimaryContainer }]}>
             Filtering by tag: {selectedTag.name}
           </Text>
@@ -311,7 +313,8 @@ export function Notes() {
             )} */}
             <View style={styles.footer}>
               <Text variant="bodySmall" style={styles.distance}>
-                📍 {(item.distance as number) < 1000
+                📍{" "}
+                {(item.distance as number) < 1000
                   ? `${Math.round(item.distance as number)} m`
                   : `${((item.distance as number) / 1000).toFixed(1)} km`}
               </Text>
