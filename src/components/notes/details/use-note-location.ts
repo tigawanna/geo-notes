@@ -7,6 +7,10 @@ export function useNoteLocation(id?: string | undefined) {
   const [locationUpdateDialogVisible, setLocationUpdateDialogVisible] = useState(false);
   const qc = useQueryClient();
 
+  const refreshLocation = () => {
+    qc.invalidateQueries({ queryKey: ["device-location"] });
+  };
+
   const handleAddLocation = (
     savedLocation: { lat: number; lng: number } | null,
     setSavedLocation: (location: { lat: number; lng: number }) => void,
@@ -56,5 +60,6 @@ export function useNoteLocation(id?: string | undefined) {
     setLocationUpdateDialogVisible,
     handleAddLocation,
     confirmLocationUpdate,
+    refreshLocation,
   };
 }

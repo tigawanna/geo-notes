@@ -2,7 +2,7 @@ import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
 import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
@@ -28,6 +28,9 @@ export function NoteDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [locationDialogVisible, setLocationDialogVisible] = useState(false);
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
 
   const {
     location,
@@ -36,7 +39,15 @@ export function NoteDetails() {
     setLocationUpdateDialogVisible,
     handleAddLocation: addLocation,
     confirmLocationUpdate: updateLocation,
+    refreshLocation,
   } = useNoteLocation(id);
+
+  // Refresh location when location dialog opens
+  useEffect(() => {
+    if (locationDialogVisible) {
+      refreshLocation();
+    }
+  }, [locationDialogVisible, refreshLocation]);
 
   const {
     data,
@@ -107,6 +118,18 @@ export function NoteDetails() {
 
   const handleSaveFromDialog = () => {
     handleSave();
+  };
+
+  const handleManualLocationChange = (lat: string, lng: string) => {
+    setManualLat(lat);
+    setManualLng(lng);
+    // If both lat and lng are valid numbers, update the saved location
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
+    if (!isNaN(latNum) && !isNaN(lngNum) && latNum >= -90 && latNum <= 90 && lngNum >= -180 && lngNum <= 180) {
+      setSavedLocation({ lat: latNum, lng: lngNum });
+      setHasUnsavedChanges(true);
+    }
   };
 
   const handleQuickCopy = async () => {
@@ -202,6 +225,10 @@ export function NoteDetails() {
                 currentLocation={location}
                 isLocationLoading={isLocationLoading}
                 onAddLocation={handleAddLocation}
+                onLocationIconPress={() => setLocationDialogVisible(true)}
+                onManualLocationChange={handleManualLocationChange}
+                manualLat={manualLat}
+                manualLng={manualLng}
                 updatedAt={note?.updated}
               />
             </Card.Content>
@@ -247,6 +274,9 @@ export function NoteDetails() {
         onConfirmLocationUpdate={confirmLocationUpdate}
         savedLocation={savedLocation}
         currentLocation={location}
+        locationDialogVisible={locationDialogVisible}
+        setLocationDialogVisible={setLocationDialogVisible}
+        onRefreshLocation={refreshLocation}
       />
 
       <Snackbar
