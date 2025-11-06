@@ -43,10 +43,10 @@ const getPlugins = (idt: UniqueIDT) => {
         image: "./assets/icons/splash-icon-light.png",
         imageWidth: 200,
         resizeMode: "contain",
-        backgroundColor: "#F3EDEB",
+        backgroundColor: "#FFFBFF",
         dark: {
           image: "./assets/icons/splash-icon-dark.png",
-          backgroundColor: "#8B685C",
+          backgroundColor: "#261811",
         },
       },
     ],
@@ -96,7 +96,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       ...config.android,
       adaptiveIcon: {
-        backgroundColor: "#8B685C",
+        backgroundColor: "#261811",
         foregroundImage: "./assets/icons/adaptive-icon.png",
         monochromeImage: "./assets/icons/adaptive-icon.png",
       },

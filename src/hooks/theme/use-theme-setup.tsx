@@ -61,7 +61,10 @@ export function useThemeSetup() {
 
   // Use the appropriate theme based on user preference
   const paperTheme = isDarkMode ? darkBasedTheme : lightBasedTheme;
-
+  // logger.log("dark mode primary", darkBasedTheme.colors.primary);
+  // logger.log("dark mode surface", darkBasedTheme.colors.surface);
+  // logger.log("light mode primary", lightBasedTheme.colors.primary);
+  // logger.log("light mode surface", lightBasedTheme.colors.surface);
   return {
     paperTheme,
     colorScheme: userThemePreference,
