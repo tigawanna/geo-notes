@@ -144,6 +144,8 @@ export async function getNote(id: string, location?: TLocation) {
     let query = db
       .select({
         ...notesColumn,
+        // Convert location blob back to GeoJSON for parsing
+        location: sql<string>`AsGeoJSON(${notes.location})`.as("location"),
         // Extract Y coordinate (latitude) from point geometry blob
         latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
         // Extract X coordinate (longitude) from point geometry blob

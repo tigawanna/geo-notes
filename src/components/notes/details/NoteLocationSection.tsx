@@ -4,11 +4,13 @@ import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 
 interface NoteLocationSectionProps {
+  savedLocation: { lat: number; lng: number } | null;
   currentLocation: LocationObject | undefined;
   onEditLocation: () => void;
 }
 
 export function NoteLocationSection({
+  savedLocation,
   currentLocation,
   onEditLocation,
 }: NoteLocationSectionProps) {
@@ -23,7 +25,9 @@ export function NoteLocationSection({
         </Text>
         {!locationEnabled && (
           <View style={[styles.disabledBadge, { backgroundColor: theme.colors.errorContainer }]}>
-            <Text variant="labelSmall" style={[styles.disabledText, { color: theme.colors.onErrorContainer }]}>
+            <Text
+              variant="labelSmall"
+              style={[styles.disabledText, { color: theme.colors.onErrorContainer }]}>
               Disabled
             </Text>
           </View>
@@ -32,21 +36,16 @@ export function NoteLocationSection({
 
       <View style={styles.locationRow}>
         <Text variant="bodyMedium" style={styles.locationValue}>
-          {currentLocation && typeof currentLocation === "object" && "coords" in currentLocation
-            ? `${currentLocation.coords.latitude.toFixed(6)}, ${currentLocation.coords.longitude.toFixed(6)}`
-            : "No location available"}
+          {savedLocation ? `${savedLocation.lat}, ${savedLocation.lng}` : "No location saved"}
         </Text>
-        <IconButton
-          icon="pencil"
-          size={20}
-          onPress={onEditLocation}
-          style={styles.editIcon}
-        />
+        <IconButton icon="pencil" size={20} onPress={onEditLocation} style={styles.editIcon} />
       </View>
 
       {!locationEnabled && (
         <View style={[styles.disabledMessage, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <Text variant="bodySmall" style={[styles.disabledMessageText, { color: theme.colors.onSurfaceVariant }]}>
+          <Text
+            variant="bodySmall"
+            style={[styles.disabledMessageText, { color: theme.colors.onSurfaceVariant }]}>
             💡 Enable location tracking in settings to view current location
           </Text>
         </View>
