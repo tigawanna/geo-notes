@@ -1,5 +1,6 @@
 import { calculateDistance, formatDistance } from "@/utils/note-utils";
-import { Button, Dialog, Portal, Text, useTheme } from "react-native-paper";
+import { View } from "react-native";
+import { Button, Dialog, IconButton, Portal, Text, useTheme } from "react-native-paper";
 
 interface NoteDetailsDialogsProps {
   deleteDialogVisible: boolean;
@@ -15,6 +16,9 @@ interface NoteDetailsDialogsProps {
   onConfirmLocationUpdate: () => void;
   savedLocation: { lat: number; lng: number } | null;
   currentLocation: any;
+  locationDialogVisible: boolean;
+  setLocationDialogVisible: (visible: boolean) => void;
+  onRefreshLocation: () => void;
 }
 
 export function NoteDetailsDialogs({
@@ -31,6 +35,9 @@ export function NoteDetailsDialogs({
   onConfirmLocationUpdate,
   savedLocation,
   currentLocation,
+  locationDialogVisible,
+  setLocationDialogVisible,
+  onRefreshLocation,
 }: NoteDetailsDialogsProps) {
   const theme = useTheme();
 
@@ -105,6 +112,66 @@ export function NoteDetailsDialogs({
         <Dialog.Actions>
           <Button onPress={() => setLocationUpdateDialogVisible(false)}>Cancel</Button>
           <Button onPress={onConfirmLocationUpdate}>Update</Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      {/* Location Comparison Dialog */}
+      <Dialog visible={locationDialogVisible} onDismiss={() => setLocationDialogVisible(false)}>
+        <Dialog.Title>Location Details</Dialog.Title>
+        <Dialog.Content>
+          {savedLocation && (
+            <View style={{ marginBottom: 16 }}>
+              <Text variant="labelMedium" style={{ marginBottom: 4, fontWeight: "600" }}>
+                💾 Saved Location
+              </Text>
+              <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 12 }}>
+                {savedLocation.lat.toFixed(6)}, {savedLocation.lng.toFixed(6)}
+              </Text>
+            </View>
+          )}
+
+          {currentLocation &&
+            typeof currentLocation === "object" &&
+            "coords" in currentLocation && (
+              <View style={{ marginBottom: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+                  <Text variant="labelMedium" style={{ fontWeight: "600", marginRight: 8 }}>
+                    📡 Current Location
+                  </Text>
+                  <IconButton
+                    icon="refresh"
+                    size={16}
+                    onPress={onRefreshLocation}
+                    style={{ margin: 0 }}
+                  />
+                </View>
+                <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 12 }}>
+                  {(currentLocation as any).coords.latitude.toFixed(6)},{" "}
+                  {(currentLocation as any).coords.longitude.toFixed(6)}
+                </Text>
+              </View>
+            )}
+
+          {savedLocation &&
+            currentLocation &&
+            typeof currentLocation === "object" &&
+            "coords" in currentLocation && (
+              <View style={{ padding: 12, backgroundColor: theme.colors.surfaceVariant, borderRadius: 8 }}>
+                <Text variant="bodySmall" style={{ color: "#FF9800", fontWeight: "500" }}>
+                  Distance: {formatDistance(
+                    calculateDistance(
+                      savedLocation.lat,
+                      savedLocation.lng,
+                      (currentLocation as any).coords.latitude,
+                      (currentLocation as any).coords.longitude
+                    )
+                  )}
+                </Text>
+              </View>
+            )}
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setLocationDialogVisible(false)}>Close</Button>
         </Dialog.Actions>
       </Dialog>
     </Portal>
