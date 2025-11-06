@@ -15,7 +15,7 @@ import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
@@ -28,6 +28,8 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
+import { db } from "@/lib/drizzle/client";
+import { logger } from "@/utils/logger";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -222,7 +224,7 @@ export function Notes() {
     ...createNotesMutationOptions,
     onSuccess: (result) => {
       if (result.result) {
-        router.push(`/note/edit?id=${result.result}` as any);
+        router.push(`/note/details?id=${result.result}` as any);
       }
     },
     meta: {
@@ -328,6 +330,12 @@ export function Notes() {
       </Pressable>
     );
   };
+
+  useEffect(() => {
+    db.run(`SELECT name FROM sqlite_master WHERE type='table'`).then((result) => {
+      logger.log("Tables in database:", result);
+    });
+  },[])
 
   if (isPending) {
     return (

@@ -15,7 +15,7 @@ export type GetNotesProps = {
 export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
   try {
     const notesColumn = getTableColumns(notes);
-
+    
     const query = db
       .select({
         ...notesColumn,
@@ -24,12 +24,12 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
         // Extract X coordinate (longitude) from point geometry blob
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
         // Calculate great-circle distance using Haversine formula
-        // Result is in meters (Earth's radius * 1000 for meters)
+        // Works with any SRID (even -1) since it only uses coordinates
         distance: sql`(
           6371000 * 2 * ASIN(
             SQRT(
               POWER(SIN((RADIANS(ST_Y(${notes.location})) - RADIANS(${location?.lat||0})) / 2), 2) +
-              COS(RADIANS(${location?.lat||0})) * 
+              COS(RADIANS(${location?.lat||0})) *
               COS(RADIANS(ST_Y(${notes.location}))) *
               POWER(SIN((RADIANS(ST_X(${notes.location})) - RADIANS(${location?.lng||0})) / 2), 2)
             )
