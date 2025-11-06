@@ -13,9 +13,9 @@ import {
 
 export const getNotesQueryOptions = ({ sortOption, location, tagId }: GetNotesProps) =>
   queryOptions({
-    queryKey: ["notes", sortOption, tagId],
+    queryKey: ["notes", sortOption, tagId, location] as const,
     queryFn: () => getNotes({ sortOption, location, tagId }),
-    placeholderData: (prev) => prev,
+    placeholderData: (prev) => prev
   });
 
 export const getNoteQueryOptions = (id: string, location?: TLocation) =>

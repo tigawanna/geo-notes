@@ -1,6 +1,7 @@
 import { db } from "@/lib/drizzle/client";
 import { notes, TInsertNote, TNote } from "@/lib/drizzle/schema";
 import { TLocation } from "@/types/location";
+import { logger } from "@/utils/logger";
 import { eq, getTableColumns, sql } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 export type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distance-desc";
@@ -14,9 +15,11 @@ export type GetNotesProps = {
 export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
   try {
     const notesColumn = getTableColumns(notes);
-    // Reference point: Nairobi, Kenya coordinates
-    // SpatiaLite uses [longitude, latitude] order in GeoJSON (X, Y)
-    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
+
+    const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng||0},${location?.lat||0}]}`;
+
+    logger.log("Using GeoJSON:", currLocationGeoJSON);
+
     const query = db
       .select({
         ...notesColumn,
@@ -38,36 +41,36 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
     }
 
     // Apply sorting based on sortOption
-    switch (sortOption) {
-      case "recent-desc":
-        // Most recent first
-        query.orderBy(sql`updated DESC`);
-        break;
-      case "recent-asc":
-        // Oldest first
-        query.orderBy(sql`updated ASC`);
-        break;
-      case "distance-asc":
-        // Closest first, then most recent
-        query.orderBy(sql`distance_meters ASC`);
-        query.orderBy(sql`updated DESC`);
-        break;
-      case "distance-desc":
-        // Farthest first, then most recent
-        query.orderBy(sql`distance_meters DESC`);
-        query.orderBy(sql`updated DESC`);
-        break;
-      default:
-        // Default to closest first
-        query.orderBy(sql`distance_meters ASC`);
-        query.orderBy(sql`updated DESC`);
-    }
+    // switch (sortOption) {
+    //   case "recent-desc":
+    //     // Most recent first
+    //     query.orderBy(sql`updated DESC`);
+    //     break;
+    //   case "recent-asc":
+    //     // Oldest first
+    //     query.orderBy(sql`updated ASC`);
+    //     break;
+    //   case "distance-asc":
+    //     // Closest first, then most recent
+    //     query.orderBy(sql`distance_meters ASC`);
+    //     query.orderBy(sql`updated DESC`);
+    //     break;
+    //   case "distance-desc":
+    //     // Farthest first, then most recent
+    //     query.orderBy(sql`distance_meters DESC`);
+    //     query.orderBy(sql`updated DESC`);
+    //     break;
+    //   default:
+    //     // Default to closest first
+    //     query.orderBy(sql`distance_meters ASC`);
+    //     query.orderBy(sql`updated DESC`);
+    // }
 
     // Execute spatial query to fetch notes with distance calculations
     const res = await query;
 
     // Uncomment for debugging spatial query results:
-    // console.log("Fetched notes:", res);
+    // logger.log("Fetched notes:", res);
 
     return {
       result: res,
