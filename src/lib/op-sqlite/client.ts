@@ -15,6 +15,7 @@ const entryPoint = "sqlite3_modspatialite_init";
 
 db.loadExtension(path, entryPoint);
 
+
 export const opsqliteDb = db;
 
 
