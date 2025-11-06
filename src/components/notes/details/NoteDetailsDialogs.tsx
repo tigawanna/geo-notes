@@ -45,44 +45,62 @@ export function NoteDetailsDialogs({
     isRefreshing: isLocationRefreshingAgain,
     refetch: refetchLocation,
   } = useDeviceLocation();
-  const [manualLat, setManualLat] = React.useState(savedLocation?.lat.toString() || "");
-  const [manualLng, setManualLng] = React.useState(savedLocation?.lng.toString() || "");
+  const [manualCoords, setManualCoords] = React.useState(
+    savedLocation ? `${savedLocation.lat.toString()},${savedLocation.lng.toString()}` : ""
+  );
 
-  // Update manual inputs when saved location changes
+  // Update manual inputs when saved location changes or when fresh location loads
   React.useEffect(() => {
     if (savedLocation) {
-      setManualLat(savedLocation.lat.toString());
-      setManualLng(savedLocation.lng.toString());
+      setManualCoords(`${savedLocation.lat.toString()},${savedLocation.lng.toString()}`);
+    } else if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
+      // If no saved location, prefill with current location when it loads
+      setManualCoords(`${freshLocation.coords.latitude.toString()},${freshLocation.coords.longitude.toString()}`);
     }
-  }, [savedLocation]);
+  }, [savedLocation, freshLocation]);
 
   const handleUseCurrentLocation = () => {
     if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
       const coords = freshLocation.coords;
-      setManualLat(coords.latitude.toString());
-      setManualLng(coords.longitude.toString());
+      setManualCoords(`${coords.latitude.toString()},${coords.longitude.toString()}`);
     }
   };
 
   const handleSave = () => {
-    const lat = parseFloat(manualLat);
-    const lng = parseFloat(manualLng);
-    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-      onSaveLocation({ lat, lng });
-      setLocationDialogVisible(false);
+    const coords = manualCoords.split(',').map(s => s.trim());
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0]);
+      const lng = parseFloat(coords[1]);
+      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        onSaveLocation({ lat, lng });
+        setLocationDialogVisible(false);
+      }
     }
   };
 
   const hasValidCoordinates = (() => {
-    const lat = parseFloat(manualLat);
-    const lng = parseFloat(manualLng);
-    return !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    const coords = manualCoords.split(',').map(s => s.trim());
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0]);
+      const lng = parseFloat(coords[1]);
+      return !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }
+    return false;
   })();
 
-  const hasChanges = savedLocation
-    ? parseFloat(manualLat) !== savedLocation.lat || parseFloat(manualLng) !== savedLocation.lng
-    : manualLat.trim() !== "" || manualLng.trim() !== "";
-  const locationPending = isLocationRefreshing || isLocationRefreshingAgain;
+  const hasChanges = (() => {
+    if (savedLocation) {
+      const coords = manualCoords.split(',').map(s => s.trim());
+      if (coords.length === 2) {
+        const lat = parseFloat(coords[0]);
+        const lng = parseFloat(coords[1]);
+        return lat !== savedLocation.lat || lng !== savedLocation.lng;
+      }
+      return false;
+    }
+    return manualCoords.trim() !== "";
+  })();
+  const locationPending = isLocationRefreshing;
   return (
     <Portal>
       {/* Delete Confirmation Dialog */}
@@ -138,7 +156,7 @@ export function NoteDetailsDialogs({
               {freshLocation && typeof freshLocation === "object" && "coords" in freshLocation
                 ? `${freshLocation.coords.latitude.toFixed(
                     6
-                  )}, ${freshLocation.coords.longitude.toFixed(6)}`
+                  )}, ${freshLocation.coords.longitude}`
                 : "No location available"}
             </Text>
             <Button
@@ -155,44 +173,16 @@ export function NoteDetailsDialogs({
             <Text variant="labelMedium" style={{ fontWeight: "600", marginBottom: 8 }}>
               Manual Coordinates
             </Text>
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <TextInput
-                label="Latitude"
-                value={manualLat}
-                onChangeText={setManualLat}
-                keyboardType="numeric"
-                mode="outlined"
-                dense
-                style={{ flex: 1 }}
-              />
-              <TextInput
-                label="Longitude"
-                value={manualLng}
-                onChangeText={setManualLng}
-                keyboardType="numeric"
-                mode="outlined"
-                dense
-                style={{ flex: 1 }}
-              />
-            </View>
+            <TextInput
+              label="Latitude, Longitude"
+              value={manualCoords}
+              onChangeText={setManualCoords}
+              keyboardType="numeric"
+              mode="outlined"
+              dense
+              placeholder="e.g. 37.7749, -122.4194"
+            />
           </View>
-
-          {/* Saved Location Display */}
-          {savedLocation && (
-            <View
-              style={{
-                padding: 12,
-                backgroundColor: theme.colors.surfaceVariant,
-                borderRadius: 8,
-              }}>
-              <Text variant="bodySmall" style={{ fontWeight: "600", marginBottom: 4 }}>
-                Currently Saved:
-              </Text>
-              <Text variant="bodySmall" style={{ fontFamily: "monospace" }}>
-                {savedLocation.lat.toFixed(6)}, {savedLocation.lng.toFixed(6)}
-              </Text>
-            </View>
-          )}
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={() => setLocationDialogVisible(false)}>Cancel</Button>

@@ -183,6 +183,7 @@ export function NoteDetails() {
           <Card style={styles.card} elevation={2}>
             <Card.Content>
               <NoteLocationSection
+                  savedLocation={savedLocation}
                 currentLocation={location}
                 onEditLocation={() => setLocationDialogVisible(true)}
               />
