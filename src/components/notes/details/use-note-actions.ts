@@ -57,7 +57,7 @@ export function useNoteActions({ id, setHasUnsavedChanges }: UseNoteActionsProps
 
     // Add location if we have a saved location (either from note or manually set)
     if (locationEnabled && savedLocation) {
-      updates.location = createGeoJSONPoint(savedLocation.lat, savedLocation.lng) as any;
+      updates.location = createGeoJSONPoint({ latitude: savedLocation.lat, longitude: savedLocation.lng }) as any;
     }
 
     updateMutation.mutate({ id, updates });
