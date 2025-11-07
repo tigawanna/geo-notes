@@ -1,24 +1,29 @@
+import { db } from "@/lib/drizzle/client";
 import { notes, TNote } from "@/lib/drizzle/schema";
-import { Appbar, Menu, Tooltip } from "react-native-paper";
-import { TNoteForm } from "../dets/NoteDetails";
-import { UseFormReturn } from "react-hook-form";
+import { createGeoJSONPoint } from "@/utils/note-utils";
+import { useMutation } from "@tanstack/react-query";
+import { eq } from "drizzle-orm";
+import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useState } from "react";
-import * as Clipboard from "expo-clipboard";
-import { useMutation } from "@tanstack/react-query";
-import { db } from "@/lib/drizzle/client";
-import { eq } from "drizzle-orm";
-import { createGeoJSONPoint } from "@/utils/note-utils";
+import { UseFormReturn, useWatch } from "react-hook-form";
+import { Appbar, Menu, Tooltip } from "react-native-paper";
+import { TNoteForm } from "../dets/NoteDetails";
+import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
+import { logger } from "@/utils/logger";
 
 interface NoteDetailsHeaderProps {
   note: TNote;
   form: UseFormReturn<TNoteForm, any, TNoteForm>;
+  isFormDirty: boolean;
 }
 
-export function NoteDetailsHeader({ note, form }: NoteDetailsHeaderProps) {
-  const { watch } = form;
-  const hasUnsavedChanges = form.formState.isDirty;
-  const quickCopy = watch("quickCopy");
+export function NoteDetailsHeader({ note, form, isFormDirty }: NoteDetailsHeaderProps) {
+  // const { watch } = form;
+  const { showSnackbar } = useSnackbar();
+  const hasUnsavedChanges = isFormDirty;
+  const { quickCopy } = useWatch({ control: form.control });
+
   const hasQuickCopy = !!quickCopy;
 
   const handleQuickCopy = async () => {
@@ -30,19 +35,28 @@ export function NoteDetailsHeader({ note, form }: NoteDetailsHeaderProps) {
   const saveMuatation = useMutation({
     mutationFn: async () => {
       const payload = form.getValues();
-      await db
+      const { location, tags, ...rest } = payload;
+      const res = await db
         .update(notes)
         .set({
-          ...payload,
+          ...rest,
+          tags: JSON.stringify(tags || []),
           location: createGeoJSONPoint({
             latitude: parseFloat(payload.location?.lat || "0"),
             longitude: parseFloat(payload.location?.lng || "0"),
           }),
         })
         .where(eq(notes.id, note.id));
+      return res;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       form.reset(form.getValues());
+      logger.info("Note saved successfully", data);
+      showSnackbar("Note saved successfully", { duration: 3000 });
+    },
+    onError: (error) => {
+      console.log("Error saving note", error);
+      showSnackbar(`Error saving note: ${error.message}`, { duration: 5000 });
     },
     meta: {
       invalidates: [["notes"]],

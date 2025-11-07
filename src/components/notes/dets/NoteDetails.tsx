@@ -1,14 +1,15 @@
 import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
+import { TNote } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { StyleSheet, View } from "react-native";
-import { Appbar, Button, Text, useTheme } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useForm } from "react-hook-form";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { Appbar, Button, Divider, Text, useTheme } from "react-native-paper";
 import { NoteDetailsHeader } from "../dets/NoteDetailsHeader";
-import { useForm } from "react-hook-form"
-import { TNote } from "@/lib/drizzle/schema";
+import { NoteDetailsForm } from "./NoteDetailsForm";
+import { useEffect } from "react";
 
 export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location"> & {
   location?: {
@@ -19,7 +20,7 @@ export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location"> &
 
 export function NoteDetails() {
   const theme = useTheme();
-  const { bottom, top, left, right } = useSafeAreaInsets();
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const { location } = useDeviceLocation();
   const lat = location?.coords.latitude || 0;
@@ -47,7 +48,18 @@ export function NoteDetails() {
       },
     },
   });
-
+  useEffect(() => {
+    form.setValue("title", note?.title || "");
+    form.setValue("content", note?.content || "");
+    form.setValue("quickCopy", note?.quickCopy || "");
+    form.setValue("tags", note?.tags ? JSON.parse(note.tags) : []);
+    form.setValue("location", {
+      lat: note?.latitude || lat.toString(),
+      lng: note?.longitude || lng.toString(),
+    });
+  }, [form, form.formState.defaultValues, lat, lng, note]);
+  
+  const isFormDirty = form.formState.isDirty;
   if (isPending) {
     return <LoadingFallback />;
   }
@@ -57,8 +69,6 @@ export function NoteDetails() {
         style={[
           {
             flex: 1,
-            paddingLeft: left,
-            paddingRight: right,
             backgroundColor: theme.colors.background,
           },
         ]}>
@@ -81,12 +91,48 @@ export function NoteDetails() {
     <View
       style={{
         flex: 1,
-        paddingLeft: left,
-        paddingRight: right,
         backgroundColor: theme.colors.background,
       }}>
-      <NoteDetailsHeader note={note} form={form} />
-      <Text variant="titleLarge">{note?.title}</Text>
+      <NoteDetailsHeader note={note} form={form} isFormDirty={isFormDirty} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled">
+          {/* Main Content - Flush with screen */}
+          <View style={styles.mainContent}>
+            <NoteDetailsForm form={form} note={note} />
+          </View>
+
+          <Divider style={styles.divider} />
+
+          {/* Location Card */}
+          {/* <Card style={styles.card} elevation={2}>
+            <Card.Content>
+              <NoteLocationSection
+                savedLocation={savedLocation}
+                currentLocation={location}
+                onEditLocation={() => setLocationDialogVisible(true)}
+              />
+            </Card.Content>
+          </Card> */}
+
+          {/* Tags Card */}
+          {/* <Card style={styles.card} elevation={2}>
+            <Card.Content>
+              <NoteTagsSection
+                noteTags={tags}
+                onTagsChange={(newTags) => {
+                  setValue("tags", newTags, { shouldDirty: true });
+                  setHasUnsavedChanges(true);
+                }}
+              />
+            </Card.Content>
+          </Card> */}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
