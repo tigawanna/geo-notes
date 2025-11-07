@@ -153,7 +153,8 @@ export async function getNote(id: string, location?: TLocation) {
     const notesColumn = getTableColumns(notes);
     const { location: _location, ...otherColumns } = notesColumn; // Exclude location from spread
     const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
-    let query = db
+    
+    const query = db
       .select({
         ...otherColumns, // Spread other columns without location
         // Convert location blob back to GeoJSON for parsing
@@ -164,7 +165,7 @@ export async function getNote(id: string, location?: TLocation) {
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
         // Calculate great-circle distance using SpatiaLite's geodesic functions
         // ST_Distance returns distance in meters by default
-        distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
+        distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON})) * 111.325`.as(
           "distance_km"
         ),
       })
