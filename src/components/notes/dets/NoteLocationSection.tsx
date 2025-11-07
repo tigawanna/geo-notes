@@ -7,6 +7,7 @@ import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import { TNoteForm } from "./NoteDetails";
 import { useState } from "react";
+import { NoteLocationDialog } from "./NoteLocationDialog";
 
 interface NoteLocationSectionProps {
   note: TNote & { latitude?: string; longitude?: string };
@@ -16,7 +17,7 @@ interface NoteLocationSectionProps {
 export function NoteLocationSection({ form, note }: NoteLocationSectionProps) {
   const { locationEnabled } = useSettingsStore();
   const theme = useTheme();
-  const [open, setOpen] = useState();
+  const [open, setOpen] = useState(false);
   const savedLat = parseFloat(note?.latitude || "0");
   const savedLng = parseFloat(note?.longitude || "0");
   const savedLocation =
@@ -28,8 +29,7 @@ export function NoteLocationSection({ form, note }: NoteLocationSectionProps) {
       : null;
 
   const onEditLocation = () => {
-    logger.info("Edit location pressed");
-    // Implement location editing logic here
+    setOpen(true);
   };
   // Format location with proper decimal places
   const formatLocation = (loc: { lat: number; lng: number }) => {
@@ -69,6 +69,12 @@ export function NoteLocationSection({ form, note }: NoteLocationSectionProps) {
           </Text>
         </View>
       )}
+      <NoteLocationDialog
+        open={open}
+        setOpen={setOpen}
+        form={form}
+        note={note}
+      />
     </View>
   );
 }

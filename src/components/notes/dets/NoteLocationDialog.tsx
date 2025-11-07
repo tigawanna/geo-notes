@@ -3,7 +3,7 @@ import { TNote } from "@/lib/drizzle/schema";
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { View } from "react-native";
-import { Button, Dialog, IconButton, Text, TextInput } from "react-native-paper";
+import { Button, Dialog, IconButton, Portal, Text, TextInput } from "react-native-paper";
 import { TNoteForm } from "./NoteDetails";
 
 interface NoteLocationDialogProps {
@@ -50,59 +50,63 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
   };
 
   return (
-    <Dialog visible={open} onDismiss={() => setOpen(false)}>
-      <Dialog.Title>Edit Location</Dialog.Title>
-      <Dialog.Content>
-        {/* Current Location Display */}
-        <View style={{ marginBottom: 16 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-            <Text variant="labelMedium" style={{ fontWeight: "600", marginRight: 8 }}>
-              Current Location
+    <Portal>
+      <Dialog visible={open} onDismiss={() => setOpen(false)}>
+        <Dialog.Title>Edit Location</Dialog.Title>
+        <Dialog.Content>
+          {/* Current Location Display */}
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+              <Text variant="labelMedium" style={{ fontWeight: "600", marginRight: 8 }}>
+                Current Location
+              </Text>
+              <IconButton
+                icon="refresh"
+                size={16}
+                onPress={() => refetchLocation()}
+                loading={locationPending}
+                style={{ margin: 0 }}
+              />
+            </View>
+            <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 8 }}>
+              {freshLocation && typeof freshLocation === "object" && "coords" in freshLocation
+                ? `${freshLocation.coords.latitude.toFixed(
+                    6
+                  )}, ${freshLocation.coords.longitude.toFixed(6)}`
+                : "No location available"}
             </Text>
-            <IconButton
-              icon="refresh"
-              size={16}
-              onPress={() => refetchLocation()}
-              loading={locationPending}
-              style={{ margin: 0 }}
+            <Button
+              mode="outlined"
+              onPress={handleUseCurrentLocation}
+              disabled={!freshLocation || locationPending}
+              style={{ marginTop: 8 }}>
+              Use Current Location
+            </Button>
+          </View>
+
+          {/* Manual Location Input */}
+          <View style={{ marginBottom: 16 }}>
+            <Text variant="labelMedium" style={{ fontWeight: "600", marginBottom: 8 }}>
+              Manual Coordinates
+            </Text>
+            <TextInput
+              label="Latitude, Longitude"
+              value={manualCoords}
+              onChangeText={setManualCoords}
+              keyboardType="numeric"
+              mode="outlined"
+              dense
+              placeholder="e.g. 37.7749, -122.4194"
             />
           </View>
-          <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 8 }}>
-            {freshLocation && typeof freshLocation === "object" && "coords" in freshLocation
-              ? `${freshLocation.coords.latitude.toFixed(6)}, ${freshLocation.coords.longitude.toFixed(6)}`
-              : "No location available"}
-          </Text>
-          <Button
-            mode="outlined"
-            onPress={handleUseCurrentLocation}
-            disabled={!freshLocation || locationPending}
-            style={{ marginTop: 8 }}>
-            Use Current Location
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setOpen(false)}>Cancel</Button>
+          <Button onPress={handleSave} disabled={!hasValidCoordinates || !hasChanges}>
+            Save Location
           </Button>
-        </View>
-
-        {/* Manual Location Input */}
-        <View style={{ marginBottom: 16 }}>
-          <Text variant="labelMedium" style={{ fontWeight: "600", marginBottom: 8 }}>
-            Manual Coordinates
-          </Text>
-          <TextInput
-            label="Latitude, Longitude"
-            value={manualCoords}
-            onChangeText={setManualCoords}
-            keyboardType="numeric"
-            mode="outlined"
-            dense
-            placeholder="e.g. 37.7749, -122.4194"
-          />
-        </View>
-      </Dialog.Content>
-      <Dialog.Actions>
-        <Button onPress={() => setOpen(false)}>Cancel</Button>
-        <Button onPress={handleSave} disabled={!hasValidCoordinates || !hasChanges}>
-          Save Location
-        </Button>
-      </Dialog.Actions>
-    </Dialog>
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
   );
 }
