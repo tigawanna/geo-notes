@@ -37,7 +37,7 @@ export function NoteDetailsDialogs({
   onSaveLocation,
   noteId,
 }: NoteDetailsDialogsProps) {
-  logger.log("saved location:", savedLocation);
+
   const theme = useTheme();
   const {
     location: freshLocation,
