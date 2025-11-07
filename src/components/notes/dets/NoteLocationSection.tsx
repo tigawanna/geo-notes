@@ -6,6 +6,7 @@ import { UseFormReturn } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import { TNoteForm } from "./NoteDetails";
+import { useState } from "react";
 
 interface NoteLocationSectionProps {
   note: TNote & { latitude?: string; longitude?: string };
@@ -15,6 +16,7 @@ interface NoteLocationSectionProps {
 export function NoteLocationSection({ form, note }: NoteLocationSectionProps) {
   const { locationEnabled } = useSettingsStore();
   const theme = useTheme();
+  const [open, setOpen] = useState();
   const savedLat = parseFloat(note?.latitude || "0");
   const savedLng = parseFloat(note?.longitude || "0");
   const savedLocation =
