@@ -14,7 +14,7 @@ export default function HomeScreen() {
         paddingTop: top + 10,
         paddingBottom: bottom,
       }}>
-        <TestQueries/>
+        {/* <TestQueries/> */}
       <Notes />
     </Surface>
   );

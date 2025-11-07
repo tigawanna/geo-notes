@@ -16,25 +16,18 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
   try {
     logger.log("Fetching notes with params:", { sortOption, location, tagId });
     const notesColumn = getTableColumns(notes);
-
     // Create reference point using ST_GeomFromText (confirmed working)
-    const referencePoint = location
-      ? sql`ST_GeomFromText('POINT(${location.lng} ${location.lat})', 4326)`
-      : sql`NULL`;
+    const currentLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
+
 
     const query = db
       .select({
         ...notesColumn,
         latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
-        // Use ST_GeomFromText instead of GeomFromGeoJSON
-        distance: location
-          ? sql`ST_Distance(
-              ${notes.location}, 
-              ${referencePoint},
-              1
-            )`.as("distance_meters")
-          : sql`NULL`.as("distance_meters"), // Use NULL instead of 0 when no location
+        distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currentLocationGeoJSON}))`.as(
+          "distance_km"
+        ),
       })
       .from(notes);
 
@@ -55,8 +48,8 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
         // Handle NULL distances by putting them at the end
         if (location) {
           query.orderBy(sql`
-            CASE WHEN distance_meters IS NULL THEN 1 ELSE 0 END,
-            distance_meters ASC, 
+            CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END,
+            distance_km ASC, 
             ${notes.updated} DESC
           `);
         } else {
@@ -66,8 +59,8 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
       case "distance-desc":
         if (location) {
           query.orderBy(sql`
-            CASE WHEN distance_meters IS NULL THEN 1 ELSE 0 END,
-            distance_meters DESC, 
+            CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END,
+            distance_km DESC, 
             ${notes.updated} DESC
           `);
         } else {
@@ -77,8 +70,8 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
       default:
         if (location) {
           query.orderBy(sql`
-            CASE WHEN distance_meters IS NULL THEN 1 ELSE 0 END,
-            distance_meters ASC, 
+            CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END,
+            distance_km ASC, 
             ${notes.updated} DESC
           `);
         } else {
@@ -158,7 +151,6 @@ export async function getNote(id: string, location?: TLocation) {
   try {
     const notesColumn = getTableColumns(notes);
     const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
-        // const currLocationGeoJSON = '{"type":"Point","coordinates":[36.8219,-1.2921]}';
     let query = db
       .select({
         ...notesColumn,
@@ -171,7 +163,7 @@ export async function getNote(id: string, location?: TLocation) {
         // Calculate great-circle distance using SpatiaLite's geodesic functions
         // ST_Distance returns distance in meters by default
         distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
-          "distance_meters"
+          "distance_km"
         ),
       })
       .from(notes)
@@ -192,7 +184,7 @@ export async function getNote(id: string, location?: TLocation) {
     //       // Calculate great-circle distance using SpatiaLite's geodesic functions
     //       // ST_Distance returns distance in meters by default
     //       distance: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON}))`.as(
-    //         "distance_meters"
+    //         "distance_km"
     //       ),
     //     })
     //     .from(notes)

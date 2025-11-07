@@ -1,4 +1,3 @@
-
 // Utility to extract phone numbers from text
 export const extractPhoneNumber = (text: string): string | null => {
   const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
@@ -7,8 +6,15 @@ export const extractPhoneNumber = (text: string): string | null => {
 };
 
 // Utility to create GeoJSON point for SpatiaLite
-export const createGeoJSONPoint = (latitude: number, longitude: number): string => {
-  return `Point(${longitude} ${latitude})`;
+export const createGeoJSONPoint = ({
+  latitude,
+  longitude,
+}: {
+  latitude: number;
+  longitude: number;
+}): string => {
+  // return `Point(${longitude} ${latitude})`;
+  return `{"type":"Point","coordinates":[${longitude},${latitude}]}`;
 };
 
 // Calculate distance between two points in meters using Haversine formula
@@ -41,9 +47,7 @@ export const formatDistance = (meters: number): string => {
 };
 
 // Parse GeoJSON location
-export const parseGeoJSONLocation = (
-  location: any
-): { lat: number; lng: number } | null => {
+export const parseGeoJSONLocation = (location: any): { lat: number; lng: number } | null => {
   try {
     // logger.log("Parsing GeoJSON location:", location);
     const geoJson = typeof location === "string" ? JSON.parse(location) : location;
