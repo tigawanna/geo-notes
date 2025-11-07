@@ -1,7 +1,6 @@
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import { TNote } from "@/lib/drizzle/schema";
-import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useController } from "react-hook-form";
 import { View } from "react-native";
 import { Button, Dialog, IconButton, Portal, Text, TextInput } from "react-native-paper";
 import { TNoteForm } from "./NoteDetails";
@@ -21,32 +20,39 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
   } = useDeviceLocation();
   const currentLat = parseFloat(note?.latitude || "0");
   const currentLng = parseFloat(note?.longitude || "0");
-  const [manualCoords, setManualCoords] = useState(`${currentLat}, ${currentLng}`);
-  const hasChanges = manualCoords !== `${currentLat}, ${currentLng}`;
+  const { field } = useController({
+    control: form.control,
+    name: "location",
+    defaultValue: {
+      lat: currentLat.toString(),
+      lng: currentLng.toString(),
+    },
+  });
 
-  const hasValidCoordinates = (() => {
-    const coords = manualCoords.split(',').map(s => parseFloat(s.trim()));
-    if (coords.length !== 2 || coords.some(isNaN)) return false;
-    const [lat, lng] = coords;
-    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-  })();
+  const manualCoords = `${field.value?.lat || currentLat}, ${field.value?.lng || currentLng}`;
+  const hasChanges = form.formState.isDirty;
 
   const handleUseCurrentLocation = () => {
-    if (freshLocation && typeof freshLocation === 'object' && 'coords' in freshLocation) {
+    if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
       const lat = freshLocation.coords.latitude.toFixed(6);
       const lng = freshLocation.coords.longitude.toFixed(6);
-      setManualCoords(`${lat}, ${lng}`);
+
+      field.onChange({ lat, lng });
+    }
+  };
+
+  const handleCoordsChange = (text: string) => {
+    const coords = text.split(",").map((s) => parseFloat(s.trim()));
+    if (coords.length === 2 && !coords.some(isNaN)) {
+      const [lat, lng] = coords;
+      if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        field.onChange({ lat: lat.toString(), lng: lng.toString() });
+      }
     }
   };
 
   const handleSave = () => {
-    if (hasValidCoordinates) {
-      const coords = manualCoords.split(',').map(s => parseFloat(s.trim()));
-      const [lat, lng] = coords;
-      form.setValue('location.lat', lat.toString());
-      form.setValue('location.lng', lng.toString());
-      setOpen(false);
-    }
+    setOpen(false);
   };
 
   return (
@@ -92,7 +98,7 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
             <TextInput
               label="Latitude, Longitude"
               value={manualCoords}
-              onChangeText={setManualCoords}
+              onChangeText={handleCoordsChange}
               keyboardType="numeric"
               mode="outlined"
               dense
@@ -102,7 +108,7 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={() => setOpen(false)}>Cancel</Button>
-          <Button onPress={handleSave} disabled={!hasValidCoordinates || !hasChanges}>
+          <Button onPress={handleSave} disabled={!hasChanges}>
             Save Location
           </Button>
         </Dialog.Actions>

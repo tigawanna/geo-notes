@@ -1,17 +1,17 @@
 import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
-import { TNote, TTag } from "@/lib/drizzle/schema";
+import { TNote } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Appbar, Button, Card, Divider, Text, useTheme } from "react-native-paper";
 import { NoteDetailsHeader } from "../dets/NoteDetailsHeader";
 import { NoteDetailsForm } from "./NoteDetailsForm";
-import { useEffect } from "react";
-import { NoteTagsSection } from "./NoteTagsSection";
 import { NoteLocationSection } from "./NoteLocationSection";
+import { NoteTagsSection } from "./NoteTagsSection";
 
 export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | "tags"> & {
   tags: string[];
@@ -131,9 +131,6 @@ export function NoteDetails() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   keyboardView: {
     flex: 1,
   },
@@ -168,24 +165,5 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontWeight: "600",
-  },
-  savingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  savingCard: {
-    borderRadius: 16,
-    minWidth: 200,
-  },
-  savingContent: {
-    alignItems: "center",
-    gap: 16,
-    paddingVertical: 24,
-    paddingHorizontal: 32,
   },
 });
