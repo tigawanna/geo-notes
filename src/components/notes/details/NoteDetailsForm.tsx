@@ -1,34 +1,42 @@
+import { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import { Controller, UseFormReturn, useWatch } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
-import { Button, Dialog, IconButton, Portal, RadioButton, Text, TextInput, useTheme } from "react-native-paper";
-import { NoteFormData } from "./use-note-details-form";
+import {
+  Button,
+  Dialog,
+  IconButton,
+  Portal,
+  RadioButton,
+  Text,
+  TextInput,
+  useTheme,
+} from "react-native-paper";
+import { TNoteForm } from "./NoteDetails";
 
 interface NoteDetailsFormProps {
-  form: UseFormReturn<NoteFormData>;
-  effectiveQuickCopyMode?: "title" | "phone" | "manual" | null;
-  updatedAt?: string | null;
+  note: TNote;
+  form: UseFormReturn<TNoteForm, any, TNoteForm>;
 }
 
-export function NoteDetailsForm({
-  form,
-  effectiveQuickCopyMode,
-  updatedAt,
-}: NoteDetailsFormProps) {
+export function NoteDetailsForm({ form, note }: NoteDetailsFormProps) {
   const theme = useTheme();
   const { quickCopyMode: globalQuickCopyMode } = useSettingsStore();
+  const {
+    quickCopyMode: noteQuickCopyMode,
+    quickCopy,
+  } = useWatch({ control: form.control });
+
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
   const [tempQuickCopyMode, setTempQuickCopyMode] = useState<string>("");
 
-  const { control, watch, setValue } = form;
-  const noteQuickCopyMode = watch("quickCopyMode");
-  const quickCopy = watch("quickCopy");
+  const { control, setValue } = form;
 
   // Use the passed effectiveQuickCopyMode or calculate it
-  const activeQuickCopyMode = effectiveQuickCopyMode ?? noteQuickCopyMode ?? globalQuickCopyMode;
+  const activeQuickCopyMode = noteQuickCopyMode ?? globalQuickCopyMode;
 
   const handleCopyQuickCopy = async () => {
     if (quickCopy?.trim()) {
@@ -44,7 +52,8 @@ export function NoteDetailsForm({
   };
 
   const handleSaveSettings = () => {
-    const mode = tempQuickCopyMode === "" ? null : (tempQuickCopyMode as "title" | "phone" | "manual");
+    const mode =
+      tempQuickCopyMode === "" ? null : (tempQuickCopyMode as "title" | "phone" | "manual");
     setValue("quickCopyMode", mode, { shouldDirty: true });
     setSettingsDialogVisible(false);
   };
@@ -59,26 +68,30 @@ export function NoteDetailsForm({
       <Controller
         control={control}
         name="title"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            mode="flat"
-            placeholder="Title"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            style={styles.titleInput}
-            placeholderTextColor={theme.colors.onSurfaceDisabled}
-            underlineColor="transparent"
-            activeUnderlineColor="transparent"
-            cursorColor={theme.colors.primary}
-            selectionColor={theme.colors.inversePrimary}
-          />
-        )}
+        render={({ field: { onChange, onBlur, value } }) => {
+          return (
+            <TextInput
+              mode="flat"
+              placeholder="Title"
+              value={value??""}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              style={styles.titleInput}
+              placeholderTextColor={theme.colors.onSurfaceDisabled}
+              underlineColor="transparent"
+              activeUnderlineColor="transparent"
+              cursorColor={theme.colors.primary}
+              selectionColor={theme.colors.inversePrimary}
+            />
+          );
+        }}
       />
 
-      {updatedAt && (
-        <Text variant="labelSmall" style={[styles.updatedText, { color: theme.colors.onSurfaceVariant }]}>
-          Last updated {new Date(updatedAt).toLocaleString()}
+      {note.updated && (
+        <Text
+          variant="labelSmall"
+          style={[styles.updatedText, { color: theme.colors.onSurfaceVariant }]}>
+          Last updated {new Date(note.updated).toLocaleString()}
         </Text>
       )}
 
@@ -91,7 +104,7 @@ export function NoteDetailsForm({
           <TextInput
             mode="flat"
             placeholder="Note content..."
-            value={value}
+            value={value??""}
             onChangeText={onChange}
             onBlur={onBlur}
             multiline
@@ -139,7 +152,7 @@ export function NoteDetailsForm({
             <TextInput
               mode="outlined"
               placeholder="Enter quick copy text..."
-              value={value}
+              value={value??""}
               onChangeText={onChange}
               onBlur={onBlur}
               style={styles.quickCopyInput}
@@ -182,7 +195,9 @@ export function NoteDetailsForm({
               <View style={styles.radioOption}>
                 <RadioButton value="" />
                 <View style={styles.radioContent}>
-                  <Text variant="bodyLarge" style={styles.radioTitle}>Use Global Setting</Text>
+                  <Text variant="bodyLarge" style={styles.radioTitle}>
+                    Use Global Setting
+                  </Text>
                   <Text variant="bodySmall" style={styles.radioDescription}>
                     Follow the app-wide quick copy preference
                   </Text>
@@ -191,7 +206,9 @@ export function NoteDetailsForm({
               <View style={styles.radioOption}>
                 <RadioButton value="manual" />
                 <View style={styles.radioContent}>
-                  <Text variant="bodyLarge" style={styles.radioTitle}>Manual Input</Text>
+                  <Text variant="bodyLarge" style={styles.radioTitle}>
+                    Manual Input
+                  </Text>
                   <Text variant="bodySmall" style={styles.radioDescription}>
                     Enter custom text to copy
                   </Text>
@@ -200,7 +217,9 @@ export function NoteDetailsForm({
               <View style={styles.radioOption}>
                 <RadioButton value="title" />
                 <View style={styles.radioContent}>
-                  <Text variant="bodyLarge" style={styles.radioTitle}>Auto-fill with Title</Text>
+                  <Text variant="bodyLarge" style={styles.radioTitle}>
+                    Auto-fill with Title
+                  </Text>
                   <Text variant="bodySmall" style={styles.radioDescription}>
                     Automatically uses the note title
                   </Text>
@@ -209,7 +228,9 @@ export function NoteDetailsForm({
               <View style={styles.radioOption}>
                 <RadioButton value="phone" />
                 <View style={styles.radioContent}>
-                  <Text variant="bodyLarge" style={styles.radioTitle}>Auto-detect Phone Numbers</Text>
+                  <Text variant="bodyLarge" style={styles.radioTitle}>
+                    Auto-detect Phone Numbers
+                  </Text>
                   <Text variant="bodySmall" style={styles.radioDescription}>
                     Finds and copies phone numbers from content
                   </Text>

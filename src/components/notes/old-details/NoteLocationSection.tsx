@@ -1,34 +1,23 @@
-import { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
-import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { logger } from "@/utils/logger";
+import { LocationObject } from "expo-location";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
-import { TNoteForm } from "./NoteDetails";
-import { NoteLocationDialog } from "./NoteLocationDialog";
 
 interface NoteLocationSectionProps {
-  note: TNote & { latitude?: string; longitude?: string };
-  form: UseFormReturn<TNoteForm, any, TNoteForm>;
+  savedLocation: { lat: number; lng: number } | null;
+  currentLocation: LocationObject | undefined;
+  onEditLocation: () => void;
 }
 
-export function NoteLocationSection({ form, note }: NoteLocationSectionProps) {
+export function NoteLocationSection({
+  savedLocation,
+  currentLocation,
+  onEditLocation,
+}: NoteLocationSectionProps) {
   const { locationEnabled } = useSettingsStore();
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
-  const savedLat = parseFloat(note?.latitude || "0");
-  const savedLng = parseFloat(note?.longitude || "0");
-  const savedLocation =
-    !isNaN(savedLat) && !isNaN(savedLng)
-      ? {
-          lat: savedLat,
-          lng: savedLng,
-        }
-      : null;
-
-  const onEditLocation = () => {
-    setOpen(true);
-  };
+  logger.log("📍 NoteLocationSection - savedLocation:", savedLocation);
   // Format location with proper decimal places
   const formatLocation = (loc: { lat: number; lng: number }) => {
     return `${loc?.lat}, ${loc?.lng}`;
@@ -67,12 +56,6 @@ export function NoteLocationSection({ form, note }: NoteLocationSectionProps) {
           </Text>
         </View>
       )}
-      <NoteLocationDialog
-        open={open}
-        setOpen={setOpen}
-        form={form}
-        note={note}
-      />
     </View>
   );
 }
