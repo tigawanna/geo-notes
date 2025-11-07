@@ -52,7 +52,7 @@ export default function RootLayout() {
                 <Stack>
                   <Stack.Screen name="(container)" options={{ headerShown: false }} />
                   <Stack.Screen name="note/details" options={{ headerShown: false }} />
-                  <Stack.Screen name="+not-found" />
+                  <Stack.Screen name="+not-found" options={{ headerShown: false }} />
                 </Stack>
               </InitDatabase>
               <GlobalSnackbar />
