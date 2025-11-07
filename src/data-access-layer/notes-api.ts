@@ -151,10 +151,11 @@ export async function deleteNote(id: number) {
 export async function getNote(id: string, location?: TLocation) {
   try {
     const notesColumn = getTableColumns(notes);
+    const { location: _location, ...otherColumns } = notesColumn; // Exclude location from spread
     const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
     let query = db
       .select({
-        ...notesColumn,
+        ...otherColumns, // Spread other columns without location
         // Convert location blob back to GeoJSON for parsing
         location: sql<string>`AsGeoJSON(${notes.location})`.as("location"),
         // Extract Y coordinate (latitude) from point geometry blob

@@ -1,43 +1,37 @@
 import { useSettingsStore } from "@/store/settings-store";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
+import { Controller, UseFormReturn } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import { Button, Dialog, IconButton, Portal, RadioButton, Text, TextInput, useTheme } from "react-native-paper";
+import { NoteFormData } from "./use-note-details-form";
 
 interface NoteDetailsFormProps {
-  title: string;
-  setTitle: (title: string) => void;
-  content: string;
-  setContent: (content: string) => void;
-  quickCopy: string;
-  setQuickCopy: (quickCopy: string) => void;
+  form: UseFormReturn<NoteFormData>;
+  effectiveQuickCopyMode?: "title" | "phone" | "manual" | null;
   updatedAt?: string | null;
-  noteQuickCopyMode?: "title" | "phone" | "manual" | null;
-  onQuickCopyModeChange: (mode: "title" | "phone" | "manual" | null) => void;
 }
 
 export function NoteDetailsForm({
-  title,
-  setTitle,
-  content,
-  setContent,
-  quickCopy,
-  setQuickCopy,
+  form,
+  effectiveQuickCopyMode,
   updatedAt,
-  noteQuickCopyMode,
-  onQuickCopyModeChange,
 }: NoteDetailsFormProps) {
   const theme = useTheme();
   const { quickCopyMode: globalQuickCopyMode } = useSettingsStore();
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
-  const [tempQuickCopyMode, setTempQuickCopyMode] = useState<string>(noteQuickCopyMode ?? "");
+  const [tempQuickCopyMode, setTempQuickCopyMode] = useState<string>("");
 
-  // Use note-specific mode if set, otherwise use global mode
-  const effectiveQuickCopyMode = noteQuickCopyMode ?? globalQuickCopyMode;
+  const { control, watch, setValue } = form;
+  const noteQuickCopyMode = watch("quickCopyMode");
+  const quickCopy = watch("quickCopy");
+
+  // Use the passed effectiveQuickCopyMode or calculate it
+  const activeQuickCopyMode = effectiveQuickCopyMode ?? noteQuickCopyMode ?? globalQuickCopyMode;
 
   const handleCopyQuickCopy = async () => {
-    if (quickCopy.trim()) {
+    if (quickCopy?.trim()) {
       await Clipboard.setStringAsync(quickCopy);
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
@@ -51,7 +45,7 @@ export function NoteDetailsForm({
 
   const handleSaveSettings = () => {
     const mode = tempQuickCopyMode === "" ? null : (tempQuickCopyMode as "title" | "phone" | "manual");
-    onQuickCopyModeChange(mode);
+    setValue("quickCopyMode", mode, { shouldDirty: true });
     setSettingsDialogVisible(false);
   };
 
@@ -62,17 +56,24 @@ export function NoteDetailsForm({
 
   return (
     <View style={styles.container}>
-      <TextInput
-        mode="flat"
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-        style={styles.titleInput}
-        placeholderTextColor={theme.colors.onSurfaceDisabled}
-        underlineColor="transparent"
-        activeUnderlineColor="transparent"
-        cursorColor={theme.colors.primary}
-        selectionColor={theme.colors.inversePrimary}
+      <Controller
+        control={control}
+        name="title"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            mode="flat"
+            placeholder="Title"
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            style={styles.titleInput}
+            placeholderTextColor={theme.colors.onSurfaceDisabled}
+            underlineColor="transparent"
+            activeUnderlineColor="transparent"
+            cursorColor={theme.colors.primary}
+            selectionColor={theme.colors.inversePrimary}
+          />
+        )}
       />
 
       {updatedAt && (
@@ -83,19 +84,26 @@ export function NoteDetailsForm({
 
       <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
-      <TextInput
-        mode="flat"
-        placeholder="Note content..."
-        value={content}
-        onChangeText={setContent}
-        multiline
-        numberOfLines={20}
-        style={styles.contentInput}
-        placeholderTextColor={theme.colors.onSurfaceDisabled}
-        underlineColor="transparent"
-        activeUnderlineColor="transparent"
-        cursorColor={theme.colors.primary}
-        selectionColor={theme.colors.inversePrimary}
+      <Controller
+        control={control}
+        name="content"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            mode="flat"
+            placeholder="Note content..."
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            multiline
+            numberOfLines={20}
+            style={styles.contentInput}
+            placeholderTextColor={theme.colors.onSurfaceDisabled}
+            underlineColor="transparent"
+            activeUnderlineColor="transparent"
+            cursorColor={theme.colors.primary}
+            selectionColor={theme.colors.inversePrimary}
+          />
+        )}
       />
 
       <View style={[styles.sectionDivider, { backgroundColor: theme.colors.outlineVariant }]} />
@@ -115,44 +123,51 @@ export function NoteDetailsForm({
             <Text
               variant="bodySmall"
               style={[styles.quickCopyHint, { color: theme.colors.onSurfaceVariant }]}>
-              {effectiveQuickCopyMode === "title"
+              {activeQuickCopyMode === "title"
                 ? "Auto-fills with title"
-                : effectiveQuickCopyMode === "phone"
+                : activeQuickCopyMode === "phone"
                 ? "Auto-detects phone numbers"
                 : "Manual input"}
               {noteQuickCopyMode && " (Note-specific)"}
             </Text>
           </View>
         </View>
-        <TextInput
-          mode="outlined"
-          placeholder="Enter quick copy text..."
-          value={quickCopy}
-          onChangeText={setQuickCopy}
-          style={styles.quickCopyInput}
-          cursorColor={theme.colors.primary}
-          selectionColor={theme.colors.primary}
-          right={
-            <View style={styles.iconContainer}>
-              {quickCopy ? (
-                <>
-                  <IconButton
-                    icon={copyFeedback ? "check" : "content-copy"}
-                    size={20}
-                    onPress={handleCopyQuickCopy}
-                    style={styles.iconButton}
-                    iconColor={copyFeedback ? theme.colors.primary : undefined}
-                  />
-                  <IconButton
-                    icon="close"
-                    size={20}
-                    onPress={() => setQuickCopy("")}
-                    style={styles.iconButton}
-                  />
-                </>
-              ) : null}
-            </View>
-          }
+        <Controller
+          control={control}
+          name="quickCopy"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              mode="outlined"
+              placeholder="Enter quick copy text..."
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              style={styles.quickCopyInput}
+              cursorColor={theme.colors.primary}
+              selectionColor={theme.colors.primary}
+              right={
+                <View style={styles.iconContainer}>
+                  {value ? (
+                    <>
+                      <IconButton
+                        icon={copyFeedback ? "check" : "content-copy"}
+                        size={20}
+                        onPress={handleCopyQuickCopy}
+                        style={styles.iconButton}
+                        iconColor={copyFeedback ? theme.colors.primary : undefined}
+                      />
+                      <IconButton
+                        icon="close"
+                        size={20}
+                        onPress={() => onChange("")}
+                        style={styles.iconButton}
+                      />
+                    </>
+                  ) : null}
+                </View>
+              }
+            />
+          )}
         />
       </View>
 

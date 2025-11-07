@@ -1,3 +1,4 @@
+import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
 import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
@@ -23,7 +24,6 @@ import { useNoteActions } from "./use-note-actions";
 import { useNoteDetailsForm } from "./use-note-details-form";
 import { useNoteLocation } from "./use-note-location";
 import { useUnsavedChanges } from "./use-unsaved-changes";
-import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 
 export function NoteDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,19 +47,14 @@ export function NoteDetails() {
 
   // Custom hooks for managing different aspects of the component
   const {
-    title,
-    setTitle,
-    content,
-    setContent,
-    quickCopy,
-    setQuickCopy,
-    noteQuickCopyMode,
-    setNoteQuickCopyMode,
-    savedLocation,
-    setSavedLocation,
-    tags,
-    setTags,
+    form,
+    effectiveQuickCopyMode,
   } = useNoteDetailsForm({ note });
+
+  const { watch, setValue } = form;
+  const savedLocation = watch("location");
+  const tags = watch("tags");
+  const quickCopy = watch("quickCopy");
 
   const {
     hasUnsavedChanges,
@@ -68,7 +63,10 @@ export function NoteDetails() {
     handleBack,
     discardChanges,
     cancelNavigation,
-  } = useUnsavedChanges({ note, title, content, quickCopy, tags });
+  } = useUnsavedChanges({ 
+    note, 
+    form,
+  });
 
   const {
     menuVisible,
@@ -84,12 +82,15 @@ export function NoteDetails() {
 
   // Wrapper functions to pass the right parameters
   const handleSave = () => {
-    saveNote(title, content, quickCopy, savedLocation, noteQuickCopyMode, tags);
-  };
-
-  const handleQuickCopyModeChange = (mode: "title" | "phone" | "manual" | null) => {
-    setNoteQuickCopyMode(mode);
-    setHasUnsavedChanges(true);
+    const formData = form.getValues();
+    saveNote(
+      formData.title, 
+      formData.content, 
+      formData.quickCopy, 
+      formData.location, 
+      formData.quickCopyMode, 
+      formData.tags
+    );
   };
 
   const handleSaveFromDialog = () => {
@@ -155,15 +156,9 @@ export function NoteDetails() {
           {/* Main Content - Flush with screen */}
           <View style={styles.mainContent}>
             <NoteDetailsForm
-              title={title}
-              setTitle={setTitle}
-              content={content}
-              setContent={setContent}
-              quickCopy={quickCopy}
-              setQuickCopy={setQuickCopy}
+              form={form}
+              effectiveQuickCopyMode={effectiveQuickCopyMode}
               updatedAt={note?.updated}
-              noteQuickCopyMode={noteQuickCopyMode}
-              onQuickCopyModeChange={handleQuickCopyModeChange}
             />
           </View>
 
@@ -186,7 +181,7 @@ export function NoteDetails() {
               <NoteTagsSection
                 noteTags={tags}
                 onTagsChange={(newTags) => {
-                  setTags(newTags);
+                  setValue("tags", newTags, { shouldDirty: true });
                   setHasUnsavedChanges(true);
                 }}
               />
@@ -220,7 +215,7 @@ export function NoteDetails() {
         locationDialogVisible={locationDialogVisible}
         setLocationDialogVisible={setLocationDialogVisible}
         onSaveLocation={(location) => {
-          setSavedLocation(location);
+          setValue("location", location, { shouldDirty: true });
           setHasUnsavedChanges(true);
         }}
         noteId={id}
@@ -268,15 +263,6 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     marginHorizontal: 16,
     height: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-  },
-  loadingText: {
-    marginTop: 8,
   },
   errorContainer: {
     flex: 1,
