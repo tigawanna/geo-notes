@@ -1,4 +1,4 @@
-import { NoteDetails } from "@/components/notes/details/NoteDetails";
+import { NoteDetails } from "@/components/notes/dets/NoteDetails";
 import { StyleSheet } from "react-native";
 import { Surface } from "react-native-paper";
 

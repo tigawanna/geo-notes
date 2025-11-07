@@ -14,7 +14,7 @@ interface UseNoteDetailsFormProps {
       };
 }
 
-export type NoteFormData = NotNullableFields<TNote> & {
+export type NoteFormData = TNote & {
   location?: {
     lat: string;
     lng: string;

@@ -20,7 +20,7 @@ export function NoteLocationSection({
   logger.log("📍 NoteLocationSection - savedLocation:", savedLocation);
   // Format location with proper decimal places
   const formatLocation = (loc: { lat: number; lng: number }) => {
-    return `${loc?.lat?.toFixed(6)}, ${loc?.lng?.toFixed(6)}`;
+    return `${loc?.lat}, ${loc?.lng}`;
   };
 
   return (
