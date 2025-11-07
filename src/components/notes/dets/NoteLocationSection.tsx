@@ -1,12 +1,10 @@
 import { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
-import { logger } from "@/utils/logger";
-import { LocationObject } from "expo-location";
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import { TNoteForm } from "./NoteDetails";
-import { useState } from "react";
 import { NoteLocationDialog } from "./NoteLocationDialog";
 
 interface NoteLocationSectionProps {
