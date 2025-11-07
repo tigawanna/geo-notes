@@ -121,7 +121,7 @@ export function NoteDetails() {
           {/* Tags Card */}
           <Card style={styles.card} elevation={2}>
             <Card.Content>
-              <NoteTagsSection note={note} form={form} />
+              <NoteTagsSection note={note} form={form} onNavigateToTags={() => router.push("/tags")} />
             </Card.Content>
           </Card>
         </ScrollView>

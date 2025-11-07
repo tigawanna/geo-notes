@@ -1,18 +1,19 @@
 import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
-import { TNote } from "@/lib/drizzle/schema";
+import { TNote, TTag } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Chip, Dialog, Portal, Text, useTheme } from "react-native-paper";
 import { TNoteForm } from "./NoteDetails";
 
 interface NoteTagsSectionProps {
   note: TNote;
   form: UseFormReturn<TNoteForm, any, TNoteForm>;
+  onNavigateToTags?: () => void;
 }
 
-export function NoteTagsSection({ form, note }: NoteTagsSectionProps) {
+export function NoteTagsSection({ form, note, onNavigateToTags }: NoteTagsSectionProps) {
   const theme = useTheme();
   const { data: allTags } = useQuery(tagsQueryOptions);
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -20,11 +21,11 @@ export function NoteTagsSection({ form, note }: NoteTagsSectionProps) {
 
   const currentTagIds = tags || [];
   const currentTags = allTags?.filter((tag) => currentTagIds.includes(tag.id)) || [];
-  const availableTags = allTags?.filter((tag) => !currentTagIds.includes(tag.id)) || [];
+  const availableTags: TTag[] = allTags?.filter((tag) => !currentTagIds.includes(tag.id)) || [];
 
   const onTagsChange = (newTags: string[]) => {
     form.setValue("tags", newTags);
-  }
+  };
 
   const handleAddTag = (tagId: string) => {
     const newTags = [...currentTagIds, tagId];
@@ -42,7 +43,11 @@ export function NoteTagsSection({ form, note }: NoteTagsSectionProps) {
         <Text variant="titleSmall" style={styles.headerTitle}>
           🏷️ Tags
         </Text>
-        <Button mode="text" onPress={() => setDialogVisible(true)} style={styles.manageButton}>
+        <Button
+          mode="text"
+          onPress={() => setDialogVisible(true)}
+          style={styles.manageButton}
+          disabled={allTags?.length === 0}>
           Manage
         </Button>
       </View>
@@ -61,13 +66,15 @@ export function NoteTagsSection({ form, note }: NoteTagsSectionProps) {
           ))}
         </View>
       ) : (
-        <View style={[styles.emptyTags, { backgroundColor: theme.colors.surfaceVariant }]}>
+        <Pressable
+          style={[styles.emptyTags, { backgroundColor: theme.colors.surfaceVariant }]}
+          onPress={onNavigateToTags}>
           <Text
             variant="bodySmall"
             style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-            No tags added yet
+            No tags yet. Create and manage tags.
           </Text>
-        </View>
+        </Pressable>
       )}
 
       <Portal>
@@ -92,6 +99,20 @@ export function NoteTagsSection({ form, note }: NoteTagsSectionProps) {
                   ))}
                 </View>
               </ScrollView>
+            ) : allTags?.length === 0 ? (
+              <View style={styles.noTagsContainer}>
+                <Text variant="bodyMedium" style={[styles.noTagsText]}>
+                  No tags yet. Create and manage tags.
+                </Text>
+                <Button
+                  mode="contained"
+                  onPress={() => {
+                    setDialogVisible(false);
+                    onNavigateToTags?.();
+                  }}>
+                  Go to Tags
+                </Button>
+              </View>
             ) : (
               <Text variant="bodyMedium" style={styles.noTagsText}>
                 All available tags have been added to this note.
@@ -152,5 +173,9 @@ const styles = StyleSheet.create({
   noTagsText: {
     textAlign: "center",
     opacity: 0.7,
+  },
+  noTagsContainer: {
+    alignItems: "center",
+    gap: 26,
   },
 });
