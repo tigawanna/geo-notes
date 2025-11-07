@@ -1,4 +1,5 @@
 import { useSettingsStore } from "@/store/settings-store";
+import { logger } from "@/utils/logger";
 import { LocationObject } from "expo-location";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
@@ -16,6 +17,11 @@ export function NoteLocationSection({
 }: NoteLocationSectionProps) {
   const { locationEnabled } = useSettingsStore();
   const theme = useTheme();
+  logger.log("📍 NoteLocationSection - savedLocation:", savedLocation);
+  // Format location with proper decimal places
+  const formatLocation = (loc: { lat: number; lng: number }) => {
+    return `${loc.lat.toFixed(6)}, ${loc.lng.toFixed(6)}`;
+  };
 
   return (
     <View style={styles.locationContainer}>
@@ -36,7 +42,7 @@ export function NoteLocationSection({
 
       <View style={styles.locationRow}>
         <Text variant="bodyMedium" style={styles.locationValue}>
-          {savedLocation ? `${savedLocation.lat}, ${savedLocation.lng}` : "No location saved"}
+          {savedLocation ? formatLocation(savedLocation) : "No location saved"}
         </Text>
         <IconButton icon="pencil" size={20} onPress={onEditLocation} style={styles.editIcon} />
       </View>

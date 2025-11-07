@@ -1,5 +1,4 @@
 import { useDeviceLocation } from "@/hooks/use-device-location";
-import { logger } from "@/utils/logger";
 import React from "react";
 import { View } from "react-native";
 import { Button, Dialog, IconButton, Portal, Text, TextInput, useTheme } from "react-native-paper";
@@ -42,7 +41,6 @@ export function NoteDetailsDialogs({
   const {
     location: freshLocation,
     isLoading: isLocationRefreshing,
-    isRefreshing: isLocationRefreshingAgain,
     refetch: refetchLocation,
   } = useDeviceLocation();
   const [manualCoords, setManualCoords] = React.useState(
@@ -51,13 +49,15 @@ export function NoteDetailsDialogs({
 
   // Update manual inputs when saved location changes or when fresh location loads
   React.useEffect(() => {
-    if (savedLocation) {
-      setManualCoords(`${savedLocation.lat.toString()},${savedLocation.lng.toString()}`);
-    } else if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
-      // If no saved location, prefill with current location when it loads
-      setManualCoords(`${freshLocation.coords.latitude.toString()},${freshLocation.coords.longitude.toString()}`);
+    if (locationDialogVisible) {
+      if (savedLocation) {
+        setManualCoords(`${savedLocation.lat.toString()},${savedLocation.lng.toString()}`);
+      } else if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
+        // If no saved location, prefill with current location when it loads
+        setManualCoords(`${freshLocation.coords.latitude.toString()},${freshLocation.coords.longitude.toString()}`);
+      }
     }
-  }, [savedLocation, freshLocation]);
+  }, [locationDialogVisible, savedLocation, freshLocation]);
 
   const handleUseCurrentLocation = () => {
     if (freshLocation && typeof freshLocation === "object" && "coords" in freshLocation) {
@@ -89,16 +89,22 @@ export function NoteDetailsDialogs({
   })();
 
   const hasChanges = (() => {
-    if (savedLocation) {
-      const coords = manualCoords.split(',').map(s => s.trim());
-      if (coords.length === 2) {
-        const lat = parseFloat(coords[0]);
-        const lng = parseFloat(coords[1]);
-        return lat !== savedLocation.lat || lng !== savedLocation.lng;
+    const coords = manualCoords.split(',').map(s => s.trim());
+    if (coords.length === 2) {
+      const lat = parseFloat(coords[0]);
+      const lng = parseFloat(coords[1]);
+      
+      if (savedLocation) {
+        // Compare with tolerance for floating point precision
+        const latDiff = Math.abs(lat - savedLocation.lat);
+        const lngDiff = Math.abs(lng - savedLocation.lng);
+        return latDiff > 0.000001 || lngDiff > 0.000001;
+      } else {
+        // No saved location, so any valid coordinate is a change
+        return !isNaN(lat) && !isNaN(lng);
       }
-      return false;
     }
-    return manualCoords.trim() !== "";
+    return false;
   })();
   const locationPending = isLocationRefreshing;
   return (

@@ -1,43 +1,26 @@
 import type { TNote } from "@/lib/drizzle/schema";
 import { router, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { NoteFormData } from "./use-note-details-form";
 
 interface UseUnsavedChangesProps {
   note: TNote | null | undefined;
-  title: string;
-  content: string;
-  quickCopy: string;
-  tags: string[];
+  form: UseFormReturn<NoteFormData>;
 }
 
-export function useUnsavedChanges({ note, title, content, quickCopy, tags }: UseUnsavedChangesProps) {
+export function useUnsavedChanges({ note, form }: UseUnsavedChangesProps) {
   const navigation = useNavigation();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [unsavedDialogVisible, setUnsavedDialogVisible] = useState(false);
   const [navigationAction, setNavigationAction] = useState<any>(null);
 
-  // Track unsaved changes
+  const { formState } = form;
+
+  // Track unsaved changes using React Hook Form's isDirty state
   useEffect(() => {
-    if (note) {
-      const titleChanged = title !== (note.title || "");
-      const contentChanged = content !== (note.content || "");
-      const quickCopyChanged = quickCopy !== (note.quickCopy || "");
-
-      // Parse note tags for comparison
-      let noteTags: string[] = [];
-      if (note.tags) {
-        try {
-          noteTags = JSON.parse(note.tags);
-        } catch (error) {
-          noteTags = [];
-        }
-      }
-
-      const tagsChanged = JSON.stringify(tags.sort()) !== JSON.stringify(noteTags.sort());
-
-      setHasUnsavedChanges(titleChanged || contentChanged || quickCopyChanged || tagsChanged);
-    }
-  }, [title, content, quickCopy, tags, note]);
+    setHasUnsavedChanges(formState.isDirty);
+  }, [formState.isDirty]);
 
   // Prevent navigation when there are unsaved changes
   useEffect(() => {
