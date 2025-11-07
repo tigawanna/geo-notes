@@ -81,7 +81,7 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
     }
 
     const res = await query;
-   // logger.log("Fetched notes:", res.slice(0, 3)); // Log only first 5 notes for brevity
+   logger.log("Fetched notes:", res.slice(0, 5)); // Log only first 5 notes for brevity
 
     return {
       result: res,
@@ -196,7 +196,7 @@ export async function getNote(id: string, location?: TLocation) {
     // }
 
     const res = await query;
-    console.log("Fetched note with id:", id);
+    // console.log("Fetched note with id:", id);
     return {
       result: res[0] || null,
       error: null,

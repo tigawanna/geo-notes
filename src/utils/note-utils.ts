@@ -17,48 +17,18 @@ export const createGeoJSONPoint = ({
   return `{"type":"Point","coordinates":[${longitude},${latitude}]}`;
 };
 
-// Calculate distance between two points in meters using Haversine formula
-export const calculateDistance = (
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number => {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // Distance in meters
-};
-
-// Format distance for display
-export const formatDistance = (meters: number): string => {
-  if (meters < 1000) {
-    return `${Math.round(meters)}m`;
+// Utility to format distance in km or meters
+export const formatKillometers = (distanceKm: number): string => {
+  if (distanceKm < 1) {
+    const meters = Math.round(distanceKm * 1000);
+    return `${meters} m`;
+  } else {
+    const km = Math.round(distanceKm * 10) / 10; // Round to 1 decimal
+    return `${km} km`;
   }
-  return `${(meters / 1000).toFixed(2)}km`;
 };
 
-// Parse GeoJSON location
-export const parseGeoJSONLocation = (location: any): { lat: number; lng: number } | null => {
-  try {
-    // logger.log("Parsing GeoJSON location:", location);
-    const geoJson = typeof location === "string" ? JSON.parse(location) : location;
-    if (geoJson.type === "Point" && Array.isArray(geoJson.coordinates)) {
-      return {
-        lng: geoJson.coordinates[0],
-        lat: geoJson.coordinates[1],
-      };
-    }
-  } catch (error) {
-    console.error("Error parsing GeoJSON location:", error);
-  }
-  return null;
-};
+
+
+
+

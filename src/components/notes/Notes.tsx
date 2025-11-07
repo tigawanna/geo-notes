@@ -9,7 +9,7 @@ import type { TNote } from "@/lib/drizzle/schema";
 import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
 import { useFilterStore } from "@/store/filter-store";
 import { useSettingsStore } from "@/store/settings-store";
-import { createGeoJSONPoint } from "@/utils/note-utils";
+import { createGeoJSONPoint, formatKillometers } from "@/utils/note-utils";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
@@ -197,7 +197,7 @@ function NotesScaffold({
 export function Notes() {
   const [sortOption, setSortOption] = useState<SortOption>("distance-asc");
   const [searchQuery, setSearchQuery] = useState("");
-  const { location } = useDeviceLocation();
+  const { location, isLoading: isLocationLoading } = useDeviceLocation();
   const lat = location?.coords.latitude || 0;
   const lng = location?.coords.longitude || 0;
   const { locationEnabled } = useSettingsStore();
@@ -302,9 +302,15 @@ export function Notes() {
               </Text>
             )}
             <View style={styles.footer}>
-              <Text variant="bodySmall" style={styles.distance}>
-                📍 {item.distance_km}
-              </Text>
+              {isLocationLoading ? (
+                <Text variant="bodySmall" style={styles.distance}>
+                  📍 ...
+                </Text>
+              ) : (
+                <Text variant="bodySmall" style={styles.distance}>
+                  📍 {formatKillometers(item.distance_km)}
+                </Text>
+              )}
             </View>
           </Card.Content>
         </Card>
