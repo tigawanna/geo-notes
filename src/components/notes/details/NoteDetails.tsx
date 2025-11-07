@@ -23,6 +23,7 @@ import { useNoteActions } from "./use-note-actions";
 import { useNoteDetailsForm } from "./use-note-details-form";
 import { useNoteLocation } from "./use-note-location";
 import { useUnsavedChanges } from "./use-unsaved-changes";
+import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 
 export function NoteDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,9 +31,7 @@ export function NoteDetails() {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [locationDialogVisible, setLocationDialogVisible] = useState(false);
 
-  const {
-    location,
-  } = useNoteLocation(id);
+  const { location } = useNoteLocation(id);
 
   const {
     data,
@@ -105,19 +104,10 @@ export function NoteDetails() {
   };
 
   if (isPending) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
-          <Text variant="bodyMedium" style={styles.loadingText}>
-            Loading note...
-          </Text>
-        </View>
-      </View>
-    );
+    return <LoadingFallback />;
   }
 
-  if ((queryError || !note)) {
+  if (queryError || !note) {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Appbar.Header>
@@ -183,7 +173,7 @@ export function NoteDetails() {
           <Card style={styles.card} elevation={2}>
             <Card.Content>
               <NoteLocationSection
-                  savedLocation={savedLocation}
+                savedLocation={savedLocation}
                 currentLocation={location}
                 onEditLocation={() => setLocationDialogVisible(true)}
               />

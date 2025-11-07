@@ -29,6 +29,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
+import { LoadingFallback } from "../state-screens/LoadingFallback";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
@@ -303,8 +304,7 @@ export function Notes() {
             )}
             <View style={styles.footer}>
               <Text variant="bodySmall" style={styles.distance}>
-                📍{" "}
-                {item.distance_km}
+                📍 {item.distance_km}
               </Text>
             </View>
           </Card.Content>
@@ -321,12 +321,7 @@ export function Notes() {
         sortOption={sortOption}
         setSortOption={setSortOption}
         selectedTagId={selectedTagId}>
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" />
-          <Text variant="bodyMedium" style={styles.loadingText}>
-            Loading notes...
-          </Text>
-        </View>
+        <LoadingFallback />
       </NotesScaffold>
     );
   }
@@ -466,10 +461,6 @@ const styles = StyleSheet.create({
   },
   distance: {
     opacity: 0.7,
-  },
-  coordinates: {
-    opacity: 0.5,
-    fontSize: 10,
   },
   loadingText: {
     marginTop: 16,
