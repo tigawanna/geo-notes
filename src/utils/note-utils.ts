@@ -8,10 +8,7 @@ export const extractPhoneNumber = (text: string): string | null => {
 
 // Utility to create GeoJSON point for SpatiaLite
 export const createGeoJSONPoint = (latitude: number, longitude: number): string => {
-  return JSON.stringify({
-    type: "Point",
-    coordinates: [longitude, latitude], // GeoJSON uses [lng, lat] order
-  });
+  return `Point(${longitude} ${latitude})`;
 };
 
 // Calculate distance between two points in meters using Haversine formula
