@@ -20,13 +20,12 @@ import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
-  ActivityIndicator,
   Card,
   FAB,
   IconButton,
   Searchbar,
   Text,
-  useTheme,
+  useTheme
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
 import { LoadingFallback } from "../state-screens/LoadingFallback";
