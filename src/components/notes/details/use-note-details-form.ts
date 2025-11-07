@@ -1,37 +1,46 @@
 import type { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
 import { extractPhoneNumber, parseGeoJSONLocation } from "@/utils/note-utils";
+import { NotNullableFields } from "@/utils/types";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 interface UseNoteDetailsFormProps {
-  note: TNote | null | undefined;
+  note:
+    | TNote & {
+        latitude?: string;
+        longitude?: string;
+        tags?: string[];
+      };
 }
 
-export interface NoteFormData {
-  title: string;
-  content: string;
-  quickCopy: string;
-  quickCopyMode: "title" | "phone" | "manual" | null;
-  location: { lat: number; lng: number } | null;
-  tags: string[];
-}
+export type NoteFormData = NotNullableFields<TNote> & {
+  location?: {
+    lat: string;
+    lng: string;
+  };
+  tags?: string[];
+  // quickCopyMode: TNote["quickCopyMode"];
+};
 
 export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
   const { quickCopyMode: globalQuickCopyMode } = useSettingsStore();
-  
+
   const form = useForm<NoteFormData>({
     defaultValues: {
-      title: "",
-      content: "",
-      quickCopy: "",
-      quickCopyMode: null,
-      location: null,
-      tags: [],
+      title: note?.title ?? "",
+      content: note?.content ?? "",
+      quickCopy: note?.quickCopy ?? "",
+      // quickCopyMode: note?.quickCopyMode||"phone",
+      tags: note?.tags ? JSON.parse(note.tags) : [],
+      location: {
+        lat: note?.latitude ?? "0",
+        lng: note?.longitude ?? "0",
+      },
     },
   });
 
-  const { watch, setValue, reset } = form;
+  const { watch, setValue } = form;
   const title = watch("title");
   const content = watch("content");
   const quickCopy = watch("quickCopy");
@@ -39,43 +48,6 @@ export function useNoteDetailsForm({ note }: UseNoteDetailsFormProps) {
 
   // Use note-specific mode if set, otherwise use global mode
   const effectiveQuickCopyMode = noteQuickCopyMode ?? globalQuickCopyMode;
-
-  // Initialize form with note data
-  useEffect(() => {
-    if (note) {
-      const formData: NoteFormData = {
-        title: note.title || "",
-        content: note.content || "",
-        quickCopy: note.quickCopy || "",
-        quickCopyMode: note.quickCopyMode as "title" | "phone" | "manual" | null,
-        location: null,
-        tags: [],
-      };
-
-      // Parse saved location from GeoJSON if it exists
-      if (note.location) {
-        const location = parseGeoJSONLocation(note.location);
-        if (location) {
-          formData.location = location;
-        }
-      }
-
-      // Parse tags from JSON string if it exists
-      if (note.tags) {
-        try {
-          const parsedTags = JSON.parse(note.tags);
-          if (Array.isArray(parsedTags)) {
-            formData.tags = parsedTags;
-          }
-        } catch (error) {
-          console.warn("Failed to parse note tags:", error);
-          formData.tags = [];
-        }
-      }
-
-      reset(formData);
-    }
-  }, [note, reset]);
 
   // Auto-generate quick copy based on mode
   useEffect(() => {

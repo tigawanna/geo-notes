@@ -6,3 +6,8 @@ export type CamelToSnakeCase<S extends string> = S extends `${infer T}${infer U}
 export type CamelToSnakeKeys<T> = {
   [K in keyof T as CamelToSnakeCase<Extract<K, string>>]: T[K];
 };
+
+
+export type NotNullableFields<T> = {
+  [K in keyof T as T[K] extends null | undefined ? never : K]: NonNullable<T[K]>
+};
