@@ -1,17 +1,20 @@
 import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
-import { TNote } from "@/lib/drizzle/schema";
+import { TNote, TTag } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useForm } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
-import { Appbar, Button, Divider, Text, useTheme } from "react-native-paper";
+import { Appbar, Button, Card, Divider, Text, useTheme } from "react-native-paper";
 import { NoteDetailsHeader } from "../dets/NoteDetailsHeader";
 import { NoteDetailsForm } from "./NoteDetailsForm";
 import { useEffect } from "react";
+import { NoteTagsSection } from "./NoteTagsSection";
+import { NoteLocationSection } from "./NoteLocationSection";
 
-export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location"> & {
+export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | "tags"> & {
+  tags: string[];
   location?: {
     lat: string;
     lng: string;
@@ -58,7 +61,7 @@ export function NoteDetails() {
       lng: note?.longitude || lng.toString(),
     });
   }, [form, form.formState.defaultValues, lat, lng, note]);
-  
+
   const isFormDirty = form.formState.isDirty;
   if (isPending) {
     return <LoadingFallback />;
@@ -109,28 +112,18 @@ export function NoteDetails() {
           <Divider style={styles.divider} />
 
           {/* Location Card */}
-          {/* <Card style={styles.card} elevation={2}>
+          <Card style={styles.card} elevation={2}>
             <Card.Content>
-              <NoteLocationSection
-                savedLocation={savedLocation}
-                currentLocation={location}
-                onEditLocation={() => setLocationDialogVisible(true)}
-              />
+              <NoteLocationSection note={note} form={form} />
             </Card.Content>
-          </Card> */}
+          </Card>
 
           {/* Tags Card */}
-          {/* <Card style={styles.card} elevation={2}>
+          <Card style={styles.card} elevation={2}>
             <Card.Content>
-              <NoteTagsSection
-                noteTags={tags}
-                onTagsChange={(newTags) => {
-                  setValue("tags", newTags, { shouldDirty: true });
-                  setHasUnsavedChanges(true);
-                }}
-              />
+              <NoteTagsSection note={note} form={form} />
             </Card.Content>
-          </Card> */}
+          </Card>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
