@@ -1,22 +1,30 @@
 import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
+import { TNote } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { UseFormReturn, useWatch } from "react-hook-form";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Chip, Dialog, Portal, Text, useTheme } from "react-native-paper";
+import { TNoteForm } from "./NoteDetails";
 
 interface NoteTagsSectionProps {
-  noteTags: string[] | null; // Array of tag IDs
-  onTagsChange: (tags: string[]) => void;
+  note: TNote;
+  form: UseFormReturn<TNoteForm, any, TNoteForm>;
 }
 
-export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps) {
+export function NoteTagsSection({ form, note }: NoteTagsSectionProps) {
   const theme = useTheme();
   const { data: allTags } = useQuery(tagsQueryOptions);
   const [dialogVisible, setDialogVisible] = useState(false);
+  const { tags } = useWatch({ control: form.control });
 
-  const currentTagIds = noteTags || [];
-  const currentTags = allTags?.filter(tag => currentTagIds.includes(tag.id)) || [];
-  const availableTags = allTags?.filter(tag => !currentTagIds.includes(tag.id)) || [];
+  const currentTagIds = tags || [];
+  const currentTags = allTags?.filter((tag) => currentTagIds.includes(tag.id)) || [];
+  const availableTags = allTags?.filter((tag) => !currentTagIds.includes(tag.id)) || [];
+
+  const onTagsChange = (newTags: string[]) => {
+    form.setValue("tags", newTags);
+  }
 
   const handleAddTag = (tagId: string) => {
     const newTags = [...currentTagIds, tagId];
@@ -24,7 +32,7 @@ export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps
   };
 
   const handleRemoveTag = (tagId: string) => {
-    const newTags = currentTagIds.filter(id => id !== tagId);
+    const newTags = currentTagIds.filter((id) => id !== tagId);
     onTagsChange(newTags);
   };
 
@@ -34,10 +42,7 @@ export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps
         <Text variant="titleSmall" style={styles.headerTitle}>
           🏷️ Tags
         </Text>
-        <Button
-          mode="text"
-          onPress={() => setDialogVisible(true)}
-          style={styles.manageButton}>
+        <Button mode="text" onPress={() => setDialogVisible(true)} style={styles.manageButton}>
           Manage
         </Button>
       </View>
@@ -47,10 +52,7 @@ export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps
           {currentTags.map((tag) => (
             <Chip
               key={tag.id}
-              style={[
-                styles.tagChip,
-                { backgroundColor:theme.colors.primaryContainer },
-              ]}
+              style={[styles.tagChip, { backgroundColor: theme.colors.primaryContainer }]}
               textStyle={{ color: theme.colors.onPrimaryContainer }}
               onClose={() => handleRemoveTag(tag.id)}
               compact>
@@ -60,7 +62,9 @@ export function NoteTagsSection({ noteTags, onTagsChange }: NoteTagsSectionProps
         </View>
       ) : (
         <View style={[styles.emptyTags, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <Text variant="bodySmall" style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+          <Text
+            variant="bodySmall"
+            style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
             No tags added yet
           </Text>
         </View>

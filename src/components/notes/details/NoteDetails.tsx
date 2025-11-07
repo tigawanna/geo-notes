@@ -1,116 +1,80 @@
 import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
+import { useDeviceLocation } from "@/hooks/use-device-location";
+import { TNote } from "@/lib/drizzle/schema";
 import { useQuery } from "@tanstack/react-query";
-import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
-import {
-  ActivityIndicator,
-  Appbar,
-  Button,
-  Card,
-  Divider,
-  Snackbar,
-  Text,
-  useTheme,
-} from "react-native-paper";
-import { NoteDetailsDialogs } from "./NoteDetailsDialogs";
+import { Appbar, Button, Card, Divider, Text, useTheme } from "react-native-paper";
 import { NoteDetailsForm } from "./NoteDetailsForm";
 import { NoteDetailsHeader } from "./NoteDetailsHeader";
 import { NoteLocationSection } from "./NoteLocationSection";
 import { NoteTagsSection } from "./NoteTagsSection";
-import { useNoteActions } from "./use-note-actions";
-import { useNoteDetailsForm } from "./use-note-details-form";
-import { useNoteLocation } from "./use-note-location";
-import { useUnsavedChanges } from "./use-unsaved-changes";
+
+export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | "tags"> & {
+  tags: string[];
+  location?: {
+    lat: string;
+    lng: string;
+  };
+};
 
 export function NoteDetails() {
-  const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [locationDialogVisible, setLocationDialogVisible] = useState(false);
 
-  const { location } = useNoteLocation(id);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { location } = useDeviceLocation();
+  const lat = location?.coords.latitude || 0;
+  const lng = location?.coords.longitude || 0;
 
-  const {
-    data,
-    isPending,
-    error: queryError,
-  } = useQuery(
-    getNoteQueryOptions(id || "", {
-      lat: location?.coords.latitude || 0,
-      lng: location?.coords.longitude || 0,
+  const { data, isPending, error } = useQuery(
+    getNoteQueryOptions(id, {
+      lat,
+      lng,
     })
   );
+
   const note = data?.result;
+  const queryError = data?.error || error?.message;
 
-  // Custom hooks for managing different aspects of the component
-  const {
-    form,
-    effectiveQuickCopyMode,
-  } = useNoteDetailsForm({ note });
-
-  const { watch, setValue } = form;
-  const savedLocation = watch("location");
-  const tags = watch("tags");
-  const quickCopy = watch("quickCopy");
-
-  const {
-    hasUnsavedChanges,
-    setHasUnsavedChanges,
-    unsavedDialogVisible,
-    handleBack,
-    discardChanges,
-    cancelNavigation,
-  } = useUnsavedChanges({ 
-    note, 
-    form,
+  const form = useForm<TNoteForm>({
+    defaultValues: {
+      title: note?.title || "",
+      content: note?.content || "",
+      quickCopy: note?.quickCopy || "",
+      tags: note?.tags ? JSON.parse(note.tags) : [],
+      location: {
+        lat: note?.latitude || lat.toString(),
+        lng: note?.longitude || lng.toString(),
+      },
+    },
   });
+  useEffect(() => {
+    form.setValue("title", note?.title || "");
+    form.setValue("content", note?.content || "");
+    form.setValue("quickCopy", note?.quickCopy || "");
+    form.setValue("tags", note?.tags ? JSON.parse(note.tags) : []);
+    form.setValue("location", {
+      lat: note?.latitude || lat.toString(),
+      lng: note?.longitude || lng.toString(),
+    });
+  }, [form, form.formState.defaultValues, lat, lng, note]);
 
-  const {
-    menuVisible,
-    setMenuVisible,
-    deleteDialogVisible,
-    setDeleteDialogVisible,
-    updateMutation,
-    deleteMutation,
-    handleSave: saveNote,
-    handleDelete,
-    confirmDelete,
-  } = useNoteActions({ id, setHasUnsavedChanges });
-
-  // Wrapper functions to pass the right parameters
-  const handleSave = () => {
-    const formData = form.getValues();
-    saveNote(
-      formData.title, 
-      formData.content, 
-      formData.quickCopy, 
-      formData.location, 
-      formData.quickCopyMode, 
-      formData.tags
-    );
-  };
-
-  const handleSaveFromDialog = () => {
-    handleSave();
-  };
-
-  const handleQuickCopy = async () => {
-    if (quickCopy.trim()) {
-      await Clipboard.setStringAsync(quickCopy);
-      setSnackbarVisible(true);
-    }
-  };
-
+  const isFormDirty = form.formState.isDirty;
   if (isPending) {
     return <LoadingFallback />;
   }
-
   if (queryError || !note) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[
+          {
+            flex: 1,
+            backgroundColor: theme.colors.background,
+          },
+        ]}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title="Error" />
@@ -126,26 +90,13 @@ export function NoteDetails() {
       </View>
     );
   }
-
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* {isPending && (
-        <View style={{ paddingTop: 20, width: "100%", alignItems: "center" }}>
-          <LoadingIndicatorDots />
-        </View>
-      )} */}
-      <NoteDetailsHeader
-        onBack={handleBack}
-        onSave={handleSave}
-        isSaving={updateMutation.isPending}
-        hasUnsavedChanges={hasUnsavedChanges}
-        menuVisible={menuVisible}
-        setMenuVisible={setMenuVisible}
-        onDelete={handleDelete}
-        onQuickCopy={handleQuickCopy}
-        hasQuickCopy={!!quickCopy.trim()}
-      />
-
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+      }}>
+      <NoteDetailsHeader note={note} form={form} isFormDirty={isFormDirty} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}>
@@ -155,11 +106,7 @@ export function NoteDetails() {
           keyboardShouldPersistTaps="handled">
           {/* Main Content - Flush with screen */}
           <View style={styles.mainContent}>
-            <NoteDetailsForm
-              form={form}
-              effectiveQuickCopyMode={effectiveQuickCopyMode}
-              updatedAt={note?.updated}
-            />
+            <NoteDetailsForm form={form} note={note} />
           </View>
 
           <Divider style={styles.divider} />
@@ -167,78 +114,23 @@ export function NoteDetails() {
           {/* Location Card */}
           <Card style={styles.card} elevation={2}>
             <Card.Content>
-              <NoteLocationSection
-                savedLocation={savedLocation}
-                currentLocation={location}
-                onEditLocation={() => setLocationDialogVisible(true)}
-              />
+              <NoteLocationSection note={note} form={form} />
             </Card.Content>
           </Card>
 
           {/* Tags Card */}
           <Card style={styles.card} elevation={2}>
             <Card.Content>
-              <NoteTagsSection
-                noteTags={tags}
-                onTagsChange={(newTags) => {
-                  setValue("tags", newTags, { shouldDirty: true });
-                  setHasUnsavedChanges(true);
-                }}
-              />
+              <NoteTagsSection note={note} form={form} />
             </Card.Content>
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {updateMutation.isPending && (
-        <View style={[styles.savingOverlay, { backgroundColor: theme.colors.backdrop }]}>
-          <Card style={styles.savingCard} elevation={4}>
-            <Card.Content style={styles.savingContent}>
-              <ActivityIndicator size="large" />
-              <Text variant="bodyLarge">Saving...</Text>
-            </Card.Content>
-          </Card>
-        </View>
-      )}
-
-      <NoteDetailsDialogs
-        deleteDialogVisible={deleteDialogVisible}
-        setDeleteDialogVisible={setDeleteDialogVisible}
-        onConfirmDelete={confirmDelete}
-        isDeleting={deleteMutation.isPending}
-        unsavedDialogVisible={unsavedDialogVisible}
-        onCancelNavigation={cancelNavigation}
-        onDiscardChanges={discardChanges}
-        onSave={handleSaveFromDialog}
-        savedLocation={savedLocation}
-        currentLocation={location}
-        locationDialogVisible={locationDialogVisible}
-        setLocationDialogVisible={setLocationDialogVisible}
-        onSaveLocation={(location) => {
-          setValue("location", location, { shouldDirty: true });
-          setHasUnsavedChanges(true);
-        }}
-        noteId={id}
-      />
-
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={2000}
-        action={{
-          label: "OK",
-          onPress: () => setSnackbarVisible(false),
-        }}>
-        Copied to clipboard!
-      </Snackbar>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   keyboardView: {
     flex: 1,
   },
@@ -273,24 +165,5 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontWeight: "600",
-  },
-  savingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  savingCard: {
-    borderRadius: 16,
-    minWidth: 200,
-  },
-  savingContent: {
-    alignItems: "center",
-    gap: 16,
-    paddingVertical: 24,
-    paddingHorizontal: 32,
   },
 });
