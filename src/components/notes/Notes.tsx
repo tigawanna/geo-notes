@@ -19,14 +19,7 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
-import {
-  Card,
-  FAB,
-  IconButton,
-  Searchbar,
-  Text,
-  useTheme
-} from "react-native-paper";
+import { Card, FAB, IconButton, Searchbar, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
 import { LoadingFallback } from "../state-screens/LoadingFallback";
 
@@ -466,9 +459,6 @@ const styles = StyleSheet.create({
   },
   distance: {
     opacity: 0.7,
-  },
-  loadingText: {
-    marginTop: 16,
   },
   errorText: {
     color: "red",
