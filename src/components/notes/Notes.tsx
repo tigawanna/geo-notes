@@ -38,7 +38,7 @@ const CONTAINER_PADDING = 8;
 interface NoteWithDistance extends TNote {
   latitude: string;
   longitude: string;
-  distance: number;
+  distance_km: number;
 }
 
 interface NotesScaffoldProps {
@@ -200,6 +200,8 @@ export function Notes() {
   const [sortOption, setSortOption] = useState<SortOption>("distance-asc");
   const [searchQuery, setSearchQuery] = useState("");
   const { location } = useDeviceLocation();
+  const lat = location?.coords.latitude || 0;
+  const lng = location?.coords.longitude || 0;
   const { locationEnabled } = useSettingsStore();
   const { selectedTagId } = useFilterStore();
   const theme = useTheme();
@@ -214,8 +216,8 @@ export function Notes() {
     getNotesQueryOptions({
       sortOption,
       location: {
-        lat: location?.coords.latitude || 0,
-        lng: location?.coords.longitude || 0,
+        lat,
+        lng,
       },
       tagId: selectedTagId,
     })
@@ -241,12 +243,12 @@ export function Notes() {
     };
 
     // Add location if enabled and available
-    if (locationEnabled && location && typeof location === "object" && "coords" in location) {
-      const coords = (location as any).coords;
-      if (coords?.longitude && coords?.latitude) {
-        // Create proper GeoJSON string using the utility function
-        // The point type's toDriver() will convert this to GeomFromGeoJSON()
-        newNote.location = createGeoJSONPoint(coords.latitude, coords.longitude);
+    if (locationEnabled && location) {
+      if (lng && lat) {
+        newNote.location = createGeoJSONPoint({
+          latitude: lat,
+          longitude: lng,
+        });
       }
     } else {
       newNote.location = null;
@@ -301,34 +303,17 @@ export function Notes() {
                 {item.content}
               </Text>
             )}
-            {/* {item.quickCopy && (
-              <Chip icon="content-copy" style={styles.chip} compact>
-                {item.quickCopy}
-              </Chip>
-            )} */}
             <View style={styles.footer}>
               <Text variant="bodySmall" style={styles.distance}>
                 📍{" "}
-                {(item.distance as number) < 1000
-                  ? `${Math.round(item.distance as number)} m`
-                  : `${((item.distance as number) / 1000).toFixed(1)} km`}
+                {item.distance_km}
               </Text>
-              <Text variant="bodySmall" style={styles.coordinates}>
-                {Number(item.latitude).toFixed(4)}, {Number(item.longitude).toFixed(4)}
-              </Text>
-              {/* {item.updated && (
-                <Text variant="bodySmall" style={styles.updatedAt}>
-                  Updated: {new Date(item.updated).toLocaleDateString()}{" "}
-                  {new Date(item.updated).toLocaleTimeString()}
-                </Text>
-              )} */}
             </View>
           </Card.Content>
         </Card>
       </Pressable>
     );
   };
-
 
   if (isPending) {
     return (

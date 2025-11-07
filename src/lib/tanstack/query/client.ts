@@ -5,6 +5,7 @@ export const queryKeyPrefixes = {
   notes: "notes",
   deviceLocation: "device-location",
   tags: "tags",
+  testQueries: "test-queries",
 } as const;
 
 
