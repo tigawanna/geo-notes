@@ -14,27 +14,27 @@ export type GetNotesProps = {
 
 export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
   try {
+    logger.log("Fetching notes with params:", { sortOption, location, tagId });
     const notesColumn = getTableColumns(notes);
-    
+
+    // Create reference point using ST_GeomFromText (confirmed working)
+    const referencePoint = location
+      ? sql`ST_GeomFromText('POINT(${location.lng} ${location.lat})', 4326)`
+      : sql`NULL`;
+
     const query = db
       .select({
         ...notesColumn,
-        // Extract Y coordinate (latitude) from point geometry blob
         latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
-        // Extract X coordinate (longitude) from point geometry blob
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
-        // Calculate great-circle distance using Haversine formula
-        // Works with any SRID (even -1) since it only uses coordinates
-        distance: sql`(
-          6371000 * 2 * ASIN(
-            SQRT(
-              POWER(SIN((RADIANS(ST_Y(${notes.location})) - RADIANS(${location?.lat||0})) / 2), 2) +
-              COS(RADIANS(${location?.lat||0})) *
-              COS(RADIANS(ST_Y(${notes.location}))) *
-              POWER(SIN((RADIANS(ST_X(${notes.location})) - RADIANS(${location?.lng||0})) / 2), 2)
-            )
-          )
-        )`.as("distance_meters"),
+        // Use ST_GeomFromText instead of GeomFromGeoJSON
+        distance: location
+          ? sql`ST_Distance(
+              ${notes.location}, 
+              ${referencePoint},
+              1
+            )`.as("distance_meters")
+          : sql`NULL`.as("distance_meters"), // Use NULL instead of 0 when no location
       })
       .from(notes);
 
@@ -43,34 +43,51 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
       query.where(sql`json_extract(${notes.tags}, '$') LIKE '%' || ${tagId} || '%'`);
     }
 
-    // Apply sorting based on sortOption
+    // Apply sorting with better handling for NULL distances
     switch (sortOption) {
       case "recent-desc":
-        // Most recent first
-        query.orderBy(sql`updated DESC`);
+        query.orderBy(sql`${notes.updated} DESC`);
         break;
       case "recent-asc":
-        // Oldest first
-        query.orderBy(sql`updated ASC`);
+        query.orderBy(sql`${notes.updated} ASC`);
         break;
       case "distance-asc":
-        // Closest first, then most recent
-        query.orderBy(sql`distance_meters ASC, updated DESC`);
+        // Handle NULL distances by putting them at the end
+        if (location) {
+          query.orderBy(sql`
+            CASE WHEN distance_meters IS NULL THEN 1 ELSE 0 END,
+            distance_meters ASC, 
+            ${notes.updated} DESC
+          `);
+        } else {
+          query.orderBy(sql`${notes.updated} DESC`);
+        }
         break;
       case "distance-desc":
-        // Farthest first, then most recent
-        query.orderBy(sql`distance_meters DESC, updated DESC`);
+        if (location) {
+          query.orderBy(sql`
+            CASE WHEN distance_meters IS NULL THEN 1 ELSE 0 END,
+            distance_meters DESC, 
+            ${notes.updated} DESC
+          `);
+        } else {
+          query.orderBy(sql`${notes.updated} DESC`);
+        }
         break;
       default:
-        // Default to closest first
-        query.orderBy(sql`distance_meters ASC, updated DESC`);
+        if (location) {
+          query.orderBy(sql`
+            CASE WHEN distance_meters IS NULL THEN 1 ELSE 0 END,
+            distance_meters ASC, 
+            ${notes.updated} DESC
+          `);
+        } else {
+          query.orderBy(sql`${notes.updated} DESC`);
+        }
     }
 
-    // Execute spatial query to fetch notes with distance calculations
     const res = await query;
-
-    // Uncomment for debugging spatial query results:
-    logger.log("Fetched notes:", res);
+    logger.log("Fetched notes:", res.slice(0, 3)); // Log only first 5 notes for brevity
 
     return {
       result: res,
@@ -141,6 +158,7 @@ export async function getNote(id: string, location?: TLocation) {
   try {
     const notesColumn = getTableColumns(notes);
     const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
+        // const currLocationGeoJSON = '{"type":"Point","coordinates":[36.8219,-1.2921]}';
     let query = db
       .select({
         ...notesColumn,

@@ -9,6 +9,7 @@ import type { TNote } from "@/lib/drizzle/schema";
 import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
 import { useFilterStore } from "@/store/filter-store";
 import { useSettingsStore } from "@/store/settings-store";
+import { createGeoJSONPoint } from "@/utils/note-utils";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
@@ -243,11 +244,9 @@ export function Notes() {
     if (locationEnabled && location && typeof location === "object" && "coords" in location) {
       const coords = (location as any).coords;
       if (coords?.longitude && coords?.latitude) {
-        const geoJSON = JSON.stringify({
-          type: "Point",
-          coordinates: [coords.longitude, coords.latitude],
-        });
-        newNote.location = geoJSON;
+        // Create proper GeoJSON string using the utility function
+        // The point type's toDriver() will convert this to GeomFromGeoJSON()
+        newNote.location = createGeoJSONPoint(coords.latitude, coords.longitude);
       }
     } else {
       newNote.location = null;
@@ -272,7 +271,7 @@ export function Notes() {
     return filteredNotes;
   }, [data?.result, searchQuery]);
 
-  const renderNoteCard = ({ item, index }: { item: NoteWithDistance, index: number }) => {
+  const renderNoteCard = ({ item, index }: { item: NoteWithDistance; index: number }) => {
     const handleLongPress = async () => {
       if (item.quickCopy) {
         await Clipboard.setStringAsync(item.quickCopy);
@@ -284,8 +283,7 @@ export function Notes() {
       <Pressable
         onPress={() => router.push(`/note/details?id=${item.id}` as any)}
         onLongPress={handleLongPress}
-        style={{ marginHorizontal: CARD_SPACING / 2 }}
-        >
+        style={{ marginHorizontal: CARD_SPACING / 2 }}>
         <Card
           style={[
             styles.card,
@@ -331,11 +329,6 @@ export function Notes() {
     );
   };
 
-  useEffect(() => {
-    db.run(`SELECT name FROM sqlite_master WHERE type='table'`).then((result) => {
-      logger.log("Tables in database:", result);
-    });
-  },[])
 
   if (isPending) {
     return (
@@ -412,7 +405,6 @@ export function Notes() {
         keyExtractor={(item: NoteWithDistance) => item.id}
         masonry
         numColumns={2}
-
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.masonryContainer}
         refreshControl={

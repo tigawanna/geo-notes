@@ -16,8 +16,10 @@ export const point = customType<{
     return "blob";
   },
   toDriver(value) {
-    return sql`GeomFromGeoJSON(${value})`;
+    // Convert "POINT(lng lat)" string to SpatiaLite geometry
+    return sql`ST_GeomFromText('${value}', 4326)`;
   },
+  
 });
 
 // MultiPoint geometry type
