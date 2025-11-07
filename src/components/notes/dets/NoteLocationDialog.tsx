@@ -1,10 +1,10 @@
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import { TNote } from "@/lib/drizzle/schema";
-import { UseFormReturn, useFormState } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
-import { Dialog, IconButton, Text, TextInput, Button } from "react-native-paper";
-import { TNoteForm } from "./NoteDetails";
 import { useState } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { View } from "react-native";
+import { Button, Dialog, IconButton, Text, TextInput } from "react-native-paper";
+import { TNoteForm } from "./NoteDetails";
 
 interface NoteLocationDialogProps {
   open: boolean;
@@ -22,9 +22,32 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
   const currentLat = parseFloat(note?.latitude || "0");
   const currentLng = parseFloat(note?.longitude || "0");
   const [manualCoords, setManualCoords] = useState(`${currentLat}, ${currentLng}`);
-  const { isDirty } = useFormState({ control: form.control });
- const hasChanges = isDirty;
+  const hasChanges = manualCoords !== `${currentLat}, ${currentLng}`;
 
+  const hasValidCoordinates = (() => {
+    const coords = manualCoords.split(',').map(s => parseFloat(s.trim()));
+    if (coords.length !== 2 || coords.some(isNaN)) return false;
+    const [lat, lng] = coords;
+    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  })();
+
+  const handleUseCurrentLocation = () => {
+    if (freshLocation && typeof freshLocation === 'object' && 'coords' in freshLocation) {
+      const lat = freshLocation.coords.latitude.toFixed(6);
+      const lng = freshLocation.coords.longitude.toFixed(6);
+      setManualCoords(`${lat}, ${lng}`);
+    }
+  };
+
+  const handleSave = () => {
+    if (hasValidCoordinates) {
+      const coords = manualCoords.split(',').map(s => parseFloat(s.trim()));
+      const [lat, lng] = coords;
+      form.setValue('location.lat', lat.toString());
+      form.setValue('location.lng', lng.toString());
+      setOpen(false);
+    }
+  };
 
   return (
     <Dialog visible={open} onDismiss={() => setOpen(false)}>
@@ -34,7 +57,7 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
         <View style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
             <Text variant="labelMedium" style={{ fontWeight: "600", marginRight: 8 }}>
-              � Current Location
+              Current Location
             </Text>
             <IconButton
               icon="refresh"
@@ -46,7 +69,7 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
           </View>
           <Text variant="bodyMedium" style={{ fontFamily: "monospace", marginBottom: 8 }}>
             {freshLocation && typeof freshLocation === "object" && "coords" in freshLocation
-              ? `${freshLocation.coords.latitude.toFixed(6)}, ${freshLocation.coords.longitude}`
+              ? `${freshLocation.coords.latitude.toFixed(6)}, ${freshLocation.coords.longitude.toFixed(6)}`
               : "No location available"}
           </Text>
           <Button
@@ -83,13 +106,3 @@ export function NoteLocationDialog({ open, setOpen, form, note }: NoteLocationDi
     </Dialog>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    height: "100%",
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
