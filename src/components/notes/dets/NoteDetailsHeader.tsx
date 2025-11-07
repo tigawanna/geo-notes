@@ -1,5 +1,7 @@
 import { db } from "@/lib/drizzle/client";
 import { notes, TNote } from "@/lib/drizzle/schema";
+import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
+import { logger } from "@/utils/logger";
 import { createGeoJSONPoint } from "@/utils/note-utils";
 import { useMutation } from "@tanstack/react-query";
 import { eq } from "drizzle-orm";
@@ -9,8 +11,7 @@ import { useState } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 import { Appbar, Menu, Tooltip } from "react-native-paper";
 import { TNoteForm } from "../dets/NoteDetails";
-import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
-import { logger } from "@/utils/logger";
+import { NoteDeletionDialog } from "./NoteDeletionDialog";
 
 interface NoteDetailsHeaderProps {
   note: TNote;
@@ -32,6 +33,7 @@ export function NoteDetailsHeader({ note, form, isFormDirty }: NoteDetailsHeader
     }
   };
   const [menuVisible, setMenuVisible] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const saveMuatation = useMutation({
     mutationFn: async () => {
       const payload = form.getValues();
@@ -76,36 +78,44 @@ export function NoteDetailsHeader({ note, form, isFormDirty }: NoteDetailsHeader
 
   const onDelete = () => {
     setMenuVisible(false);
-    deleteMutation.mutate();
+    setDeleteDialogVisible(true);
   };
   return (
-    <Appbar.Header elevated>
-      <Appbar.BackAction onPress={() => router.back()} />
-      <Appbar.Content title="" />
-      {hasUnsavedChanges && (
-        <Tooltip title="You have unsaved changes">
-          <Appbar.Action icon="circle" size={8} color="orange" disabled />
+    <>
+      <Appbar.Header elevated>
+        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.Content title="" />
+        {hasUnsavedChanges && (
+          <Tooltip title="You have unsaved changes">
+            <Appbar.Action icon="circle" size={8} color="orange" disabled />
+          </Tooltip>
+        )}
+        <Tooltip title="Quick copy">
+          <Appbar.Action icon="content-copy" onPress={handleQuickCopy} disabled={!hasQuickCopy} />
         </Tooltip>
-      )}
-      <Tooltip title="Quick copy">
-        <Appbar.Action icon="content-copy" onPress={handleQuickCopy} disabled={!hasQuickCopy} />
-      </Tooltip>
-      <Tooltip title={hasUnsavedChanges ? "Save changes" : "No changes to save"}>
-        <Appbar.Action
-          icon="check"
-          onPress={async () => {
-            await saveMuatation.mutate();
-          }}
-          disabled={saveMuatation.isPending || !hasUnsavedChanges}
-          animated
-        />
-      </Tooltip>
-      <Menu
-        visible={menuVisible}
-        onDismiss={() => setMenuVisible(false)}
-        anchor={<Appbar.Action icon="dots-vertical" onPress={() => setMenuVisible(true)} />}>
-        <Menu.Item leadingIcon="delete" onPress={onDelete} title="Delete Note" />
-      </Menu>
-    </Appbar.Header>
+        <Tooltip title={hasUnsavedChanges ? "Save changes" : "No changes to save"}>
+          <Appbar.Action
+            icon="check"
+            onPress={async () => {
+              await saveMuatation.mutate();
+            }}
+            disabled={saveMuatation.isPending || !hasUnsavedChanges}
+            animated
+          />
+        </Tooltip>
+        <Menu
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          anchor={<Appbar.Action icon="dots-vertical" onPress={() => setMenuVisible(true)} />}>
+          <Menu.Item leadingIcon="delete" onPress={onDelete} title="Delete Note" />
+        </Menu>
+      </Appbar.Header>
+      <NoteDeletionDialog
+        visible={deleteDialogVisible}
+        onDismiss={() => setDeleteDialogVisible(false)}
+        onConfirmDelete={deleteMutation.mutate}
+        isDeleting={deleteMutation.isPending}
+      />
+    </>
   );
 }
