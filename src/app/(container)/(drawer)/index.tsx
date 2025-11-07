@@ -1,4 +1,3 @@
-import { TestQueries } from "@/components/debug/TestQueries";
 import { Notes } from "@/components/notes/Notes";
 import { Surface } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,7 +13,6 @@ export default function HomeScreen() {
         paddingTop: top + 10,
         paddingBottom: bottom,
       }}>
-        {/* <TestQueries/> */}
       <Notes />
     </Surface>
   );

@@ -1,12 +1,11 @@
+import { useDeviceLocation } from "@/hooks/use-device-location";
 import { db } from "@/lib/drizzle/client";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { Button, Text } from "react-native-paper";
 import { notes } from "@/lib/drizzle/schema";
 import { createGeoJSONPoint } from "@/utils/note-utils";
-import * as Crypto from "expo-crypto";
-import { eq, like, sql } from "drizzle-orm";
-import { useDeviceLocation } from "@/hooks/use-device-location";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { like, sql } from "drizzle-orm";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Button, Text } from "react-native-paper";
 
 const dummynotes = [
   {

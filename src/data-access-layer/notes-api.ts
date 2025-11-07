@@ -25,9 +25,10 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
         ...notesColumn,
         latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
-        distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currentLocationGeoJSON}))`.as(
-          "distance_km"
-        ),
+        // distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currentLocationGeoJSON}))`.as(
+        //   "distance_km"
+        // ),
+        distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currentLocationGeoJSON})) * 111.325`.as("distance_km")
       })
       .from(notes);
 

@@ -16,7 +16,7 @@ import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
 import {
@@ -29,8 +29,6 @@ import {
   useTheme,
 } from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
-import { db } from "@/lib/drizzle/client";
-import { logger } from "@/utils/logger";
 
 const CARD_SPACING = 8;
 const CONTAINER_PADDING = 8;
