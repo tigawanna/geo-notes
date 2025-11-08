@@ -8,7 +8,7 @@ import { Divider, Icon, List, Switch, useTheme } from "react-native-paper";
 export function AppearanceSettings() {
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useThemeStore();
-  const { dynamicColors, toggleDynamicColors, colorScheme, setColorScheme } = useSettingsStore();
+  const { dynamicColors, toggleDynamicColors, colorScheme, setColorScheme, hapticsEnabled, toggleHapticsEnabled } = useSettingsStore();
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
     key: key as CustomThemeKey,
     color: value.light.primary,
@@ -27,6 +27,12 @@ export function AppearanceSettings() {
         description="Use Material You color palette"
         left={(props) => <List.Icon {...props} icon="palette" />}
         right={() => <Switch value={dynamicColors} onValueChange={toggleDynamicColors} />}
+      />
+      <List.Item
+        title="Haptic Feedback"
+        description="Enable vibration feedback"
+        left={(props) => <List.Icon {...props} icon="vibrate" />}
+        right={() => <Switch value={hapticsEnabled} onValueChange={toggleHapticsEnabled} />}
       />
       <List.Item
         title="Color Scheme"

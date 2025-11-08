@@ -1,5 +1,6 @@
 import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
+import { useControlledHaptics } from "@/hooks/use-controlled-haptics";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import { db } from "@/lib/drizzle/client";
 import { notes, TNote } from "@/lib/drizzle/schema";
@@ -29,6 +30,7 @@ export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | 
 export function NoteDetails() {
   const theme = useTheme();
   const { showSnackbar } = useSnackbar();
+  const { triggerWarningHaptic, triggerSuccessHaptic } = useControlledHaptics();
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const { location } = useDeviceLocation();
@@ -73,6 +75,12 @@ export function NoteDetails() {
     form,
   });
 
+  useEffect(() => {
+    if (unsavedDialogVisible) {
+      triggerWarningHaptic();
+    }
+  }, [unsavedDialogVisible, triggerWarningHaptic]);
+
   const isFormDirty = form.formState.isDirty;
 
   const saveMutation = useMutation({
@@ -106,6 +114,7 @@ export function NoteDetails() {
 
   const handleSave = async () => {
     await saveMutation.mutateAsync();
+    triggerSuccessHaptic();
     discardChanges(); // This will close the dialog and navigate
   };
   if (isPending) {
