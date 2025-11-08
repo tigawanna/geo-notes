@@ -7,7 +7,6 @@ import { createGeoJSONPoint } from "@/utils/note-utils";
 import { useMutation } from "@tanstack/react-query";
 import { eq } from "drizzle-orm";
 import * as Clipboard from "expo-clipboard";
-import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
@@ -30,7 +29,7 @@ export function NoteDetailsHeader({
 }: NoteDetailsHeaderProps) {
   // const { watch } = form;
   const { showSnackbar } = useSnackbar();
-  const { triggerImpact, triggerSuccessHaptic } = useControlledHaptics();
+  const { triggerSuccessHaptic } = useControlledHaptics();
   const hasUnsavedChanges = isFormDirty;
   const { quickCopy } = useWatch({ control: form.control });
 
@@ -39,7 +38,7 @@ export function NoteDetailsHeader({
   const handleQuickCopy = async () => {
     if (note?.quickCopy?.trim()) {
       await Clipboard.setStringAsync(note.quickCopy);
-      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
+      triggerSuccessHaptic();
     }
   };
   const [menuVisible, setMenuVisible] = useState(false);
