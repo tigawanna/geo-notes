@@ -6,6 +6,7 @@ import {
 import { useNoteSearch } from "@/hooks/notes/use-note-search";
 import { useNoteSelection } from "@/hooks/notes/use-note-selection";
 import { useNoteSort } from "@/hooks/notes/use-note-sort";
+import { useControlledHaptics } from "@/hooks/use-controlled-haptics";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
 import { useFilterStore } from "@/store/filter-store";
@@ -37,7 +38,7 @@ export function Notes() {
   const theme = useTheme();
   const qc = useQueryClient();
   const { showSnackbar } = useSnackbar();
-
+  const { triggerSuccessHaptic } = useControlledHaptics();
   const { sortOption, setSortOption } = useNoteSort("distance-asc");
   const {
     isSelectionMode,
@@ -156,6 +157,7 @@ export function Notes() {
   const handleNoteLongPress = async (quickCopy: string | null) => {
     if (quickCopy) {
       await Clipboard.setStringAsync(quickCopy);
+      triggerSuccessHaptic();
       showSnackbar(`"${quickCopy}" has been copied to clipboard.`);
     }
   };
