@@ -131,13 +131,27 @@ export async function deleteAllNotes() {
   }
 }
 
-export async function deleteNote(id: number) {
+export async function deleteNote(id: string) {
   try {
     const res = await db.delete(notes).where(sql`id = ${id}`);
     console.log("Deleted note with id:", id);
     return { result: res, error: null };
   } catch (error) {
     console.error("Error deleting note with id:", id, error);
+    return {
+      result: null,
+      error: error instanceof Error ? error.message : JSON.stringify(error),
+    };
+  }
+}
+
+export async function deleteNotes(ids: string[]) {
+  try {
+    const res = await db.delete(notes).where(sql`id IN (${sql.join(ids, sql`, `)})`);
+    console.log("Deleted notes with ids:", ids);
+    return { result: res, error: null };
+  } catch (error) {
+    console.error("Error deleting notes with ids:", ids, error);
     return {
       result: null,
       error: error instanceof Error ? error.message : JSON.stringify(error),

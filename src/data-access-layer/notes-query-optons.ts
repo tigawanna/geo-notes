@@ -5,6 +5,7 @@ import {
   createNote,
   deleteAllNotes,
   deleteNote,
+  deleteNotes,
   getNote,
   getNotes,
   GetNotesProps,
@@ -48,7 +49,14 @@ export const deleteAllNotesMutationOptions = mutationOptions({
 });
 
 export const deleteNoteMutationOptions = mutationOptions({
-  mutationFn: (id: number) => deleteNote(id),
+  mutationFn: (id: string) => deleteNote(id),
+  meta: {
+    invalidates: [["notes"]],
+  },
+});
+
+export const deleteNotesMutationOptions = mutationOptions({
+  mutationFn: (ids: string[]) => deleteNotes(ids),
   meta: {
     invalidates: [["notes"]],
   },
