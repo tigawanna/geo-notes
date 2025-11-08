@@ -2,7 +2,7 @@ import { db } from "@/lib/drizzle/client";
 import { notes, TInsertNote, TNote } from "@/lib/drizzle/schema";
 import { TLocation } from "@/types/location";
 import { logger } from "@/utils/logger";
-import { eq, getTableColumns, sql } from "drizzle-orm";
+import { and, eq, getTableColumns, or, sql } from "drizzle-orm";
 import * as Crypto from "expo-crypto";
 export type SortOption = "recent-desc" | "recent-asc" | "distance-asc" | "distance-desc";
 
@@ -10,11 +10,12 @@ export type GetNotesProps = {
   sortOption?: SortOption;
   location?: TLocation;
   tagId?: string | null;
+  searchQuery?: string;
 };
 
-export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
+export async function getNotes({ sortOption, location, tagId, searchQuery }: GetNotesProps) {
   try {
-    logger.log("Fetching notes with params:", { sortOption, location, tagId });
+    logger.log("Fetching notes with params:", { sortOption, location, tagId, searchQuery });
     const notesColumn = getTableColumns(notes);
     // Create reference point using ST_GeomFromText (confirmed working)
     const currentLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
@@ -29,9 +30,29 @@ export async function getNotes({ sortOption, location, tagId }: GetNotesProps) {
       })
       .from(notes);
 
+    // Build where conditions
+    const whereConditions = [];
+    
     // Apply tag filter if specified
     if (tagId) {
-      query.where(sql`json_extract(${notes.tags}, '$') LIKE '%' || ${tagId} || '%'`);
+      whereConditions.push(sql`json_extract(${notes.tags}, '$') LIKE '%' || ${tagId} || '%'`);
+    }
+    
+    // Apply search filter if specified
+    if (searchQuery && searchQuery.length > 0) {
+      const lowercaseSearch = searchQuery.toLowerCase();
+      whereConditions.push(
+        or(
+          sql`lower(${notes.title}) LIKE ${`%${lowercaseSearch}%`}`,
+          sql`lower(${notes.content}) LIKE ${`%${lowercaseSearch}%`}`,
+          sql`lower(${notes.quickCopy}) LIKE ${`%${lowercaseSearch}%`}`
+        )
+      );
+    }
+    
+    // Apply all where conditions if any exist
+    if (whereConditions.length > 0) {
+      query.where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions));
     }
 
     // Apply sorting with better handling for NULL distances

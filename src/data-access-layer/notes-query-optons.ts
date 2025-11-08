@@ -12,10 +12,10 @@ import {
   updateNote,
 } from "./notes-api";
 
-export const getNotesQueryOptions = ({ sortOption, location, tagId }: GetNotesProps) =>
+export const getNotesQueryOptions = ({ sortOption, location, tagId, searchQuery }: GetNotesProps) =>
   queryOptions({
-    queryKey: ["notes", sortOption, tagId, location] as const,
-    queryFn: () => getNotes({ sortOption, location, tagId }),
+    queryKey: ["notes", sortOption, tagId, location, searchQuery] as const,
+    queryFn: () => getNotes({ sortOption, location, tagId, searchQuery }),
     placeholderData: (prev) => prev
   });
 

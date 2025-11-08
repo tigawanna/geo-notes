@@ -1,26 +1,14 @@
-import type { NoteWithDistance } from "@/components/notes/list/NoteCard";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-export function useNoteSearch(notes: NoteWithDistance[]) {
+/**
+ * Hook to manage search query state
+ * Note: Filtering is now done at the database level, not in JavaScript
+ */
+export function useNoteSearch() {
   const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredNotes = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return notes;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    return notes.filter(
-      (note) =>
-        note.title?.toLowerCase().includes(query) ||
-        note.content?.toLowerCase().includes(query) ||
-        note.quickCopy?.toLowerCase().includes(query)
-    );
-  }, [notes, searchQuery]);
 
   return {
     searchQuery,
     setSearchQuery,
-    filteredNotes,
   };
 }

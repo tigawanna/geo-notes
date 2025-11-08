@@ -3,7 +3,6 @@ import {
   deleteNotesMutationOptions,
   getNotesQueryOptions,
 } from "@/data-access-layer/notes-query-optons";
-import { useNoteSearch } from "@/hooks/notes/use-note-search";
 import { useNoteSelection } from "@/hooks/notes/use-note-selection";
 import { useNoteSort } from "@/hooks/notes/use-note-sort";
 import { useControlledHaptics } from "@/hooks/use-controlled-haptics";
@@ -30,6 +29,8 @@ const CONTAINER_PADDING = 8;
 
 export function Notes() {
   const [showRefreshControl, setShowRefreshControl] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDualColumn, setIsDualColumn] = useState(true);
   const { location, isLoading: isLocationLoading } = useDeviceLocation();
   const lat = location?.coords.latitude || 0;
   const lng = location?.coords.longitude || 0;
@@ -60,12 +61,11 @@ export function Notes() {
       sortOption,
       location: { lat, lng },
       tagId: selectedTagId,
+      searchQuery,
     })
   );
 
-  const { searchQuery, setSearchQuery, filteredNotes } = useNoteSearch(
-    (data?.result || []) as NoteWithDistance[]
-  );
+  const notes = (data?.result || []) as NoteWithDistance[];
 
   const createNoteMutation = useMutation({
     ...createNotesMutationOptions,
@@ -80,7 +80,7 @@ export function Notes() {
   const deleteNoteMutation = useMutation(deleteNotesMutationOptions);
 
   const handleSelectAll = () => {
-    const allIds = filteredNotes.map((note) => note.id);
+    const allIds = notes.map((note) => note.id);
     selectAll(allIds);
   };
 
@@ -88,12 +88,12 @@ export function Notes() {
     const selectedIds = Array.from(selectedNoteIds);
     await deleteNoteMutation.mutateAsync(selectedIds);
     exitSelectionMode();
-    showSnackbar(`Deleted \${selectedIds.length} notes`);
+    showSnackbar(`Deleted ${selectedIds.length} notes`);
   };
 
   const handleBulkExport = async () => {
     try {
-      const selectedNotes = filteredNotes.filter((note) => selectedNoteIds.has(note.id));
+      const selectedNotes = notes.filter((note) => selectedNoteIds.has(note.id));
       const notesToExport = selectedNotes.map((note) => ({
         ...note,
         location:
@@ -173,6 +173,10 @@ export function Notes() {
     />
   );
 
+  const toggleColumnMode = () => {
+    setIsDualColumn(!isDualColumn);
+  };
+
   const scaffoldProps = {
     searchQuery,
     setSearchQuery,
@@ -186,6 +190,8 @@ export function Notes() {
     onClearSelection: clearSelection,
     location,
     isLocationLoading,
+    isDualColumn,
+    onToggleColumnMode: toggleColumnMode,
   };
 
   if (isPending) {
@@ -209,7 +215,7 @@ export function Notes() {
     );
   }
 
-  if (!filteredNotes || filteredNotes.length === 0) {
+  if (!notes || notes.length === 0) {
     return (
       <NotesScaffold {...scaffoldProps}>
         <View style={styles.centerContainer}>
@@ -232,11 +238,11 @@ export function Notes() {
   return (
     <NotesScaffold {...scaffoldProps}>
       <FlashList
-        data={filteredNotes}
+        data={notes}
         renderItem={renderNoteCard}
         keyExtractor={(item: NoteWithDistance) => item.id}
         masonry
-        numColumns={2}
+        numColumns={isDualColumn ? 2 : 1}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.masonryContainer}
         refreshControl={
