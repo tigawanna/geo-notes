@@ -1,5 +1,6 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Location from "expo-location";
+import { useEffect, useRef } from "react";
 
 async function getCurrentLocation() {
   const { status } = await Location.requestForegroundPermissionsAsync();
@@ -38,6 +39,7 @@ export async function manuallySetLocation({
 
 export function useDeviceLocation() {
   const queryClient = useQueryClient();
+  const watcherRef = useRef<Location.LocationSubscription | null>(null);
 
   const {
     data: location,
@@ -48,9 +50,35 @@ export function useDeviceLocation() {
   } = useQuery({
     queryKey: ["device-location"],
     queryFn: getCurrentLocation,
-    refetchInterval: 1000 * 60 * 1, // 1 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes
     retry: false,
   });
+
+  useEffect(() => {
+    const startWatching = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+
+      watcherRef.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000, // Minimum time between updates (5s)
+          distanceInterval: 2, // Minimum distance change (2m)
+        },
+        (newLocation) => {
+          queryClient.setQueryData(["device-location"], newLocation);
+        }
+      );
+    };
+
+    startWatching();
+
+    return () => {
+      if (watcherRef.current) {
+        watcherRef.current.remove();
+      }
+    };
+  }, [queryClient]);
 
   const { mutate: requestLocationAgain, isPending: isRefreshing } = useMutation({
     mutationFn: getCurrentLocation,
