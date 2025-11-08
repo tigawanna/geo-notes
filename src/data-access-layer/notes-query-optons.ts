@@ -21,10 +21,11 @@ export const getNotesQueryOptions = ({ sortOption, location, tagId }: GetNotesPr
 
 export const getNoteQueryOptions = (id: string, location?: TLocation) =>
   queryOptions({
-    queryKey: ["notes", "detail", id, location] as const,
+    queryKey: ["notes", "detail", id] as const,
     queryFn: () => getNote(id, location),
     placeholderData: (prev) => prev,
     enabled: !!id,
+    staleTime: Infinity,
   });
 
 export const createNotesMutationOptions = mutationOptions({

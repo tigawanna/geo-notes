@@ -12,7 +12,6 @@ export function useUnsavedChanges({ form }: UseUnsavedChangesProps) {
   const { isDirty } = useFormState({ control: form.control });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(isDirty);
   const [unsavedDialogVisible, setUnsavedDialogVisible] = useState(false);
-  console.log("useUnsavedChanges - isDirty:", isDirty, "hasUnsavedChanges:", hasUnsavedChanges);
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);

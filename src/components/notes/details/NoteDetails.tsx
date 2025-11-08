@@ -17,6 +17,7 @@ import { NoteDetailsHeader } from "./NoteDetailsHeader";
 import { NoteLocationSection } from "./NoteLocationSection";
 import { NoteTagsSection } from "./NoteTagsSection";
 import { useUnsavedChanges } from "./use-unsaved-changes";
+import { logger } from "@/utils/logger";
 
 export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | "tags"> & {
   tags: string[];
@@ -66,7 +67,9 @@ export function NoteDetails() {
       lat: note?.latitude || lat.toString(),
       lng: note?.longitude || lng.toString(),
     });
-  }, [form, form.formState.defaultValues, lat, lng, note]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note]);
+
   const { unsavedDialogVisible, handleBack, discardChanges, cancelNavigation } = useUnsavedChanges({
     form,
   });
