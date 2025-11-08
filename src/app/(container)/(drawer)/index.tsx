@@ -1,4 +1,4 @@
-import { Notes } from "@/components/notes/Notes";
+import { Notes } from "@/components/notes/list/Notes";
 import { Surface } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
