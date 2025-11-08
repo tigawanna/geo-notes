@@ -1,3 +1,4 @@
+import { useControlledHaptics } from "@/hooks/use-controlled-haptics";
 import { db } from "@/lib/drizzle/client";
 import { notes, TNote } from "@/lib/drizzle/schema";
 import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
@@ -6,6 +7,7 @@ import { createGeoJSONPoint } from "@/utils/note-utils";
 import { useMutation } from "@tanstack/react-query";
 import { eq } from "drizzle-orm";
 import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
@@ -20,9 +22,15 @@ interface NoteDetailsHeaderProps {
   onBackPress?: () => void;
 }
 
-export function NoteDetailsHeader({ note, form, isFormDirty, onBackPress }: NoteDetailsHeaderProps) {
+export function NoteDetailsHeader({
+  note,
+  form,
+  isFormDirty,
+  onBackPress,
+}: NoteDetailsHeaderProps) {
   // const { watch } = form;
   const { showSnackbar } = useSnackbar();
+  const { triggerImpact, triggerSuccessHaptic } = useControlledHaptics();
   const hasUnsavedChanges = isFormDirty;
   const { quickCopy } = useWatch({ control: form.control });
 
@@ -31,6 +39,7 @@ export function NoteDetailsHeader({ note, form, isFormDirty, onBackPress }: Note
   const handleQuickCopy = async () => {
     if (note?.quickCopy?.trim()) {
       await Clipboard.setStringAsync(note.quickCopy);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     }
   };
   const [menuVisible, setMenuVisible] = useState(false);
@@ -54,6 +63,7 @@ export function NoteDetailsHeader({ note, form, isFormDirty, onBackPress }: Note
     },
     onSuccess: (data, variables) => {
       form.reset(form.getValues());
+      triggerSuccessHaptic();
       logger.info("Note saved successfully", data);
       showSnackbar("Note saved successfully", { duration: 3000 });
     },

@@ -16,11 +16,13 @@ type SettingsStoreType = {
   lastBackup: Date | null;
   locationEnabled: boolean;
   quickCopyMode: "title" | "phone" | "manual";
+  hapticsEnabled: boolean;
 
   // Actions
   toggleDynamicColors: () => void;
   toggleTheme: () => void;
   toggleLocationEnabled: () => void;
+  toggleHapticsEnabled: () => void;
   setTheme: (theme: "dark" | "light" | null) => void;
   setColorScheme: (scheme: CustomThemeKey | null) => void;
   setLocalBackupPath: (path: string | null) => void;
@@ -33,6 +35,7 @@ type SettingsStoreType = {
         | "toggleDynamicColors"
         | "toggleTheme"
         | "toggleLocationEnabled"
+        | "toggleHapticsEnabled"
         | "setTheme"
         | "setColorScheme"
         | "setLocalBackupPath"
@@ -55,6 +58,7 @@ export const useSettingsStore = create<SettingsStoreType>()(
       lastBackup: null,
       locationEnabled: true,
       quickCopyMode: "manual",
+      hapticsEnabled: true,
 
       // Actions
       toggleDynamicColors: () =>
@@ -71,6 +75,11 @@ export const useSettingsStore = create<SettingsStoreType>()(
       toggleLocationEnabled: () =>
         set((state) => ({
           locationEnabled: !state.locationEnabled,
+        })),
+
+      toggleHapticsEnabled: () =>
+        set((state) => ({
+          hapticsEnabled: !state.hapticsEnabled,
         })),
 
       setTheme: (theme) => set({ theme }),
@@ -117,6 +126,7 @@ export const useSettingsStore = create<SettingsStoreType>()(
         lastBackup: state.lastBackup,
         locationEnabled: state.locationEnabled,
         quickCopyMode: state.quickCopyMode,
+        hapticsEnabled: state.hapticsEnabled,
       }),
     }
   )

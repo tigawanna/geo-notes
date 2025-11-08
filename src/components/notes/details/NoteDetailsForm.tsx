@@ -1,11 +1,14 @@
+import { useControlledHaptics } from "@/hooks/use-controlled-haptics";
 import { TNote } from "@/lib/drizzle/schema";
 import { useSettingsStore } from "@/store/settings-store";
 import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import { Controller, UseFormReturn, useWatch } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import {
   Button,
+  Card,
   Dialog,
   IconButton,
   Portal,
@@ -24,6 +27,7 @@ interface NoteDetailsFormProps {
 export function NoteDetailsForm({ form, note }: NoteDetailsFormProps) {
   const theme = useTheme();
   const { quickCopyMode: globalQuickCopyMode } = useSettingsStore();
+  const { triggerImpact } = useControlledHaptics();
   const {
     quickCopyMode: noteQuickCopyMode,
     quickCopy,
@@ -41,6 +45,7 @@ export function NoteDetailsForm({ form, note }: NoteDetailsFormProps) {
   const handleCopyQuickCopy = async () => {
     if (quickCopy?.trim()) {
       await Clipboard.setStringAsync(quickCopy);
+      triggerImpact(Haptics.ImpactFeedbackStyle.Light);
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
     }
@@ -121,68 +126,72 @@ export function NoteDetailsForm({ form, note }: NoteDetailsFormProps) {
 
       <View style={[styles.sectionDivider, { backgroundColor: theme.colors.outlineVariant }]} />
 
-      <View style={styles.quickCopyContainer}>
-        <View style={styles.quickCopyHeader}>
-          <Text variant="titleSmall" style={styles.quickCopyLabel}>
-            ⚡ Quick Copy
-          </Text>
-          <View style={styles.headerActions}>
-            <IconButton
-              icon="cog"
-              size={16}
-              onPress={handleOpenSettings}
-              style={styles.settingsButton}
+      <Card style={[styles.quickCopyCard, { marginTop: 8 }]} elevation={1} onLongPress={handleCopyQuickCopy}>
+        <Card.Content>
+          <View style={styles.quickCopyContainer}>
+            <View style={styles.quickCopyHeader}>
+              <Text variant="titleSmall" style={styles.quickCopyLabel}>
+                ⚡ Quick Copy
+              </Text>
+              <View style={styles.headerActions}>
+                <IconButton
+                  icon="cog"
+                  size={16}
+                  onPress={handleOpenSettings}
+                  style={styles.settingsButton}
+                />
+                <Text
+                  variant="bodySmall"
+                  style={[styles.quickCopyHint, { color: theme.colors.onSurfaceVariant }]}>
+                  {activeQuickCopyMode === "title"
+                    ? "Auto-fills with title"
+                    : activeQuickCopyMode === "phone"
+                    ? "Auto-detects phone numbers"
+                    : "Manual input"}
+                  {noteQuickCopyMode && " (Note-specific)"}
+                </Text>
+              </View>
+            </View>
+            <Controller
+              control={control}
+              name="quickCopy"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  mode="outlined"
+                  placeholder="Enter quick copy text..."
+                  value={value??""}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  style={styles.quickCopyInput}
+                  cursorColor={theme.colors.primary}
+                  selectionColor={theme.colors.primary}
+                  right={
+                    <View style={styles.iconContainer}>
+                      {value ? (
+                        <>
+                          <IconButton
+                            icon={copyFeedback ? "check" : "content-copy"}
+                            size={20}
+                            onPress={handleCopyQuickCopy}
+                            style={styles.iconButton}
+                            iconColor={copyFeedback ? theme.colors.primary : undefined}
+                          />
+                          <IconButton
+                            icon="close"
+                            size={20}
+                            onPress={() => onChange("")}
+                            style={styles.iconButton}
+                          />
+                        </>
+                      ) : null}
+                    </View>
+                  }
+                />
+              )}
             />
-            <Text
-              variant="bodySmall"
-              style={[styles.quickCopyHint, { color: theme.colors.onSurfaceVariant }]}>
-              {activeQuickCopyMode === "title"
-                ? "Auto-fills with title"
-                : activeQuickCopyMode === "phone"
-                ? "Auto-detects phone numbers"
-                : "Manual input"}
-              {noteQuickCopyMode && " (Note-specific)"}
-            </Text>
           </View>
-        </View>
-        <Controller
-          control={control}
-          name="quickCopy"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              mode="outlined"
-              placeholder="Enter quick copy text..."
-              value={value??""}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              style={styles.quickCopyInput}
-              cursorColor={theme.colors.primary}
-              selectionColor={theme.colors.primary}
-              right={
-                <View style={styles.iconContainer}>
-                  {value ? (
-                    <>
-                      <IconButton
-                        icon={copyFeedback ? "check" : "content-copy"}
-                        size={20}
-                        onPress={handleCopyQuickCopy}
-                        style={styles.iconButton}
-                        iconColor={copyFeedback ? theme.colors.primary : undefined}
-                      />
-                      <IconButton
-                        icon="close"
-                        size={20}
-                        onPress={() => onChange("")}
-                        style={styles.iconButton}
-                      />
-                    </>
-                  ) : null}
-                </View>
-              }
-            />
-          )}
-        />
-      </View>
+        </Card.Content>
+      </Card>
 
       <Portal>
         <Dialog visible={settingsDialogVisible} onDismiss={handleCancelSettings}>
@@ -279,8 +288,11 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 16,
   },
+  quickCopyCard: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
   quickCopyContainer: {
-    marginTop: 8,
     gap: 12,
   },
   quickCopyHeader: {
