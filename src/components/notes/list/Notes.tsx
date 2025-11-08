@@ -147,14 +147,16 @@ export function Notes() {
     if (isSelectionMode) {
       toggleNoteSelection(noteId);
     } else {
-      router.push(`/note/details?id=\${noteId}` as any);
+      console.log(`Navigating to note details for noteId: ${noteId}`);
+      // router.push(`/note/details?id=\${noteId}` as any);
+      router.push(`/note/details?id=${noteId}`);
     }
   };
 
   const handleNoteLongPress = async (quickCopy: string | null) => {
     if (quickCopy) {
       await Clipboard.setStringAsync(quickCopy);
-      showSnackbar(`"\${quickCopy}" has been copied to clipboard.`);
+      showSnackbar(`"${quickCopy}" has been copied to clipboard.`);
     }
   };
 
