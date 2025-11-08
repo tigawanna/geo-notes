@@ -1,5 +1,9 @@
 import { SortOption } from "@/data-access-layer/notes-api";
-import { createNotesMutationOptions, deleteNotesMutationOptions, getNotesQueryOptions } from "@/data-access-layer/notes-query-optons";
+import {
+  createNotesMutationOptions,
+  deleteNotesMutationOptions,
+  getNotesQueryOptions,
+} from "@/data-access-layer/notes-query-optons";
 import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
 import { useDeviceLocation } from "@/hooks/use-device-location";
 import type { TNote } from "@/lib/drizzle/schema";
@@ -13,12 +17,22 @@ import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
+import { LocationObject } from "expo-location";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Menu, MenuDivider, MenuItem } from "react-native-material-menu";
-import { Button, Card, Checkbox, FAB, IconButton, Searchbar, Text, useTheme } from "react-native-paper";
+import {
+  Button,
+  Card,
+  Checkbox,
+  FAB,
+  IconButton,
+  Searchbar,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { MaterialCommunityIcon } from "../default/ui/icon-symbol";
 import { LoadingFallback } from "../state-screens/LoadingFallback";
 
@@ -43,6 +57,8 @@ interface NotesScaffoldProps {
   selectedCount: number;
   onSelectAll: () => void;
   onClearSelection: () => void;
+  location: LocationObject | null | undefined;
+  isLocationLoading: boolean;
 }
 
 function NotesScaffold({
@@ -57,6 +73,8 @@ function NotesScaffold({
   selectedCount,
   onSelectAll,
   onClearSelection,
+  location,
+  isLocationLoading,
 }: NotesScaffoldProps) {
   const { colors } = useTheme();
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
@@ -91,7 +109,7 @@ function NotesScaffold({
         {isSelectionMode ? (
           <IconButton icon="close" onPress={onToggleSelectionMode} size={24} />
         ) : (
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: "row" }}>
             <IconButton icon="select-all" onPress={onToggleSelectionMode} size={24} />
             <Menu
               visible={sortMenuVisible}
@@ -178,6 +196,19 @@ function NotesScaffold({
           </View>
         )}
       </View>
+      {location && (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: 1,
+            width: "100%",
+          }}>
+          <Text variant="bodySmall" style={{ fontSize: 12, opacity: 0.5 }}>
+            Lat: {location.coords.latitude.toFixed(4)} Lng: {location.coords.longitude.toFixed(4)}
+          </Text>
+        </View>
+      )}
       {isSelectionMode && (
         <View style={[styles.selectionHeader, { backgroundColor: colors.primaryContainer }]}>
           <View style={styles.selectionInfo}>
@@ -190,9 +221,8 @@ function NotesScaffold({
               mode="text"
               onPress={selectedCount === 0 ? onSelectAll : onClearSelection}
               textColor={colors.primary}
-              compact
-            >
-              {selectedCount === 0 ? 'Select All' : 'Clear'}
+              compact>
+              {selectedCount === 0 ? "Select All" : "Clear"}
             </Button>
           </View>
         </View>
@@ -227,6 +257,7 @@ export function Notes() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(new Set());
+  const [showRefreshControl, setShowRefreshControl] = useState(false);
   const { location, isLoading: isLocationLoading } = useDeviceLocation();
   const lat = location?.coords.latitude || 0;
   const lng = location?.coords.longitude || 0;
@@ -239,7 +270,6 @@ export function Notes() {
     isPending,
     error: queryError,
     refetch,
-    isRefetching,
   } = useQuery(
     getNotesQueryOptions({
       sortOption,
@@ -271,7 +301,7 @@ export function Notes() {
   };
 
   const handleSelectAll = () => {
-    const allIds = new Set(notes.map(note => note.id));
+    const allIds = new Set(notes.map((note) => note.id));
     setSelectedNoteIds(allIds);
   };
 
@@ -289,32 +319,35 @@ export function Notes() {
 
   const handleBulkExport = async () => {
     try {
-      const selectedNotes = notes.filter(note => selectedNoteIds.has(note.id));
+      const selectedNotes = notes.filter((note) => selectedNoteIds.has(note.id));
       // Convert notes to export format (similar to the export function)
-      const notesToExport = selectedNotes.map(note => ({
+      const notesToExport = selectedNotes.map((note) => ({
         ...note,
-        location: note.latitude && note.longitude 
-          ? `{"type":"Point","coordinates":[${note.longitude},${note.latitude}]}`
-          : null,
+        location:
+          note.latitude && note.longitude
+            ? `{"type":"Point","coordinates":[${note.longitude},${note.latitude}]}`
+            : null,
       }));
 
       const jsonData = JSON.stringify(notesToExport, null, 2);
       const fileName = `notes_export_${new Date().toISOString().split("T")[0]}.json`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
+
       await FileSystem.writeAsStringAsync(fileUri, jsonData);
-      
+
       // Share the file
       const sharingAvailable = await Sharing.isAvailableAsync();
       if (sharingAvailable) {
         await Sharing.shareAsync(fileUri);
       }
-      
+
       setIsSelectionMode(false);
       setSelectedNoteIds(new Set());
       showSnackbar(`Exported ${selectedNotes.length} notes`);
     } catch (error) {
-      showSnackbar(`Failed to export notes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showSnackbar(
+        `Failed to export notes: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   };
 
@@ -338,6 +371,11 @@ export function Notes() {
     }
 
     createNoteMutation.mutate(newNote);
+  };
+
+  const handleRefresh = () => {
+    setShowRefreshControl(true);
+    refetch().finally(() => setShowRefreshControl(false));
   };
 
   const notes = useMemo(() => {
@@ -391,19 +429,17 @@ export function Notes() {
             {
               backgroundColor: theme.colors.surface,
             },
-            isSelectionMode && isSelected && {
-              backgroundColor: theme.colors.primaryContainer,
-              borderColor: theme.colors.primary,
-              borderWidth: 2,
-            },
+            isSelectionMode &&
+              isSelected && {
+                backgroundColor: theme.colors.primaryContainer,
+                borderColor: theme.colors.primary,
+                borderWidth: 2,
+              },
           ]}
           mode="elevated">
           {isSelectionMode && (
             <View style={styles.checkboxContainer}>
-              <Checkbox
-                status={isSelected ? 'checked' : 'unchecked'}
-                onPress={handlePress}
-              />
+              <Checkbox status={isSelected ? "checked" : "unchecked"} onPress={handlePress} />
             </View>
           )}
           <Card.Content>
@@ -444,7 +480,9 @@ export function Notes() {
         onToggleSelectionMode={handleToggleSelectionMode}
         selectedCount={selectedNoteIds.size}
         onSelectAll={handleSelectAll}
-        onClearSelection={handleClearSelection}>
+        onClearSelection={handleClearSelection}
+        location={location}
+        isLocationLoading={isLocationLoading}>
         <LoadingFallback />
       </NotesScaffold>
     );
@@ -462,7 +500,9 @@ export function Notes() {
         onToggleSelectionMode={handleToggleSelectionMode}
         selectedCount={selectedNoteIds.size}
         onSelectAll={handleSelectAll}
-        onClearSelection={handleClearSelection}>
+        onClearSelection={handleClearSelection}
+        location={location}
+        isLocationLoading={isLocationLoading}>
         <View style={styles.centerContainer}>
           <Text variant="titleMedium" style={styles.errorText}>
             Error loading notes
@@ -485,7 +525,9 @@ export function Notes() {
         onToggleSelectionMode={handleToggleSelectionMode}
         selectedCount={selectedNoteIds.size}
         onSelectAll={handleSelectAll}
-        onClearSelection={handleClearSelection}>
+        onClearSelection={handleClearSelection}
+        location={location}
+        isLocationLoading={isLocationLoading}>
         <View style={styles.centerContainer}>
           <Text variant="titleLarge">No notes yet</Text>
           <Text variant="bodyMedium" style={styles.emptyText}>
@@ -515,7 +557,9 @@ export function Notes() {
       onToggleSelectionMode={handleToggleSelectionMode}
       selectedCount={selectedNoteIds.size}
       onSelectAll={handleSelectAll}
-      onClearSelection={handleClearSelection}>
+      onClearSelection={handleClearSelection}
+      location={location}
+      isLocationLoading={isLocationLoading}>
       <FlashList
         data={notes}
         renderItem={renderNoteCard}
@@ -526,8 +570,8 @@ export function Notes() {
         contentContainerStyle={styles.masonryContainer}
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
+            refreshing={showRefreshControl}
+            onRefresh={handleRefresh}
             colors={[theme.colors.primary]}
             tintColor={theme.colors.primary}
           />
@@ -541,16 +585,14 @@ export function Notes() {
             onPress={handleBulkDelete}
             icon="delete"
             style={styles.bulkActionButton}
-            loading={deleteNoteMutation.isPending}
-          >
+            loading={deleteNoteMutation.isPending}>
             Delete ({selectedNoteIds.size})
           </Button>
           <Button
             mode="outlined"
             onPress={handleBulkExport}
             icon="file-export"
-            style={styles.bulkActionButton}
-          >
+            style={styles.bulkActionButton}>
             Export
           </Button>
         </View>
@@ -608,7 +650,7 @@ const styles = StyleSheet.create({
   masonryContainer: {
     padding: CONTAINER_PADDING,
     gap: CARD_SPACING,
-    paddingBottom: '25%',
+    paddingBottom: "25%",
   },
   card: {
     marginBottom: CARD_SPACING,
@@ -666,18 +708,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   checkboxContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     zIndex: 1,
   },
   bulkActionsBar: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 80, // Above the FAB
     left: 16,
     right: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     padding: 16,
     borderRadius: 8,
     elevation: 4,
