@@ -17,9 +17,10 @@ interface NoteDetailsHeaderProps {
   note: TNote;
   form: UseFormReturn<TNoteForm, any, TNoteForm>;
   isFormDirty: boolean;
+  onBackPress?: () => void;
 }
 
-export function NoteDetailsHeader({ note, form, isFormDirty }: NoteDetailsHeaderProps) {
+export function NoteDetailsHeader({ note, form, isFormDirty, onBackPress }: NoteDetailsHeaderProps) {
   // const { watch } = form;
   const { showSnackbar } = useSnackbar();
   const hasUnsavedChanges = isFormDirty;
@@ -83,7 +84,7 @@ export function NoteDetailsHeader({ note, form, isFormDirty }: NoteDetailsHeader
   return (
     <>
       <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.BackAction onPress={onBackPress || (() => router.back())} />
         <Appbar.Content title="" />
         {hasUnsavedChanges && (
           <Tooltip title="You have unsaved changes">

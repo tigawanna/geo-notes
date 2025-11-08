@@ -1,17 +1,22 @@
 import { LoadingFallback } from "@/components/state-screens/LoadingFallback";
 import { getNoteQueryOptions } from "@/data-access-layer/notes-query-optons";
 import { useDeviceLocation } from "@/hooks/use-device-location";
-import { TNote } from "@/lib/drizzle/schema";
-import { useQuery } from "@tanstack/react-query";
+import { db } from "@/lib/drizzle/client";
+import { notes, TNote } from "@/lib/drizzle/schema";
+import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-store";
+import { createGeoJSONPoint } from "@/utils/note-utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { eq } from "drizzle-orm";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
-import { Appbar, Button, Card, Divider, Text, useTheme } from "react-native-paper";
+import { Appbar, Button, Card, Dialog, Divider, Portal, Text, useTheme } from "react-native-paper";
 import { NoteDetailsForm } from "./NoteDetailsForm";
 import { NoteDetailsHeader } from "./NoteDetailsHeader";
 import { NoteLocationSection } from "./NoteLocationSection";
 import { NoteTagsSection } from "./NoteTagsSection";
+import { useUnsavedChanges } from "./use-unsaved-changes";
 
 export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | "tags"> & {
   tags: string[];
@@ -23,6 +28,7 @@ export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | 
 
 export function NoteDetails() {
   const theme = useTheme();
+  const { showSnackbar } = useSnackbar();
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const { location } = useDeviceLocation();
@@ -61,8 +67,45 @@ export function NoteDetails() {
       lng: note?.longitude || lng.toString(),
     });
   }, [form, form.formState.defaultValues, lat, lng, note]);
+  const { unsavedDialogVisible, handleBack, discardChanges, cancelNavigation } = useUnsavedChanges({
+    form,
+  });
 
   const isFormDirty = form.formState.isDirty;
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const payload = form.getValues();
+      const { location: loc, tags, ...rest } = payload;
+      const res = await db
+        .update(notes)
+        .set({
+          ...rest,
+          tags: JSON.stringify(tags || []),
+          location: createGeoJSONPoint({
+            latitude: parseFloat(loc?.lat || "0"),
+            longitude: parseFloat(loc?.lng || "0"),
+          }),
+        })
+        .where(eq(notes.id, note!.id));
+      return res;
+    },
+    onSuccess: () => {
+      form.reset(form.getValues());
+      showSnackbar("Note saved successfully", { duration: 3000 });
+    },
+    onError: (error: any) => {
+      showSnackbar(`Error saving note: ${error.message}`, { duration: 5000 });
+    },
+    meta: {
+      invalidates: [["notes"]],
+    },
+  });
+
+  const handleSave = async () => {
+    await saveMutation.mutateAsync();
+    discardChanges(); // This will close the dialog and navigate
+  };
   if (isPending) {
     return <LoadingFallback />;
   }
@@ -96,7 +139,12 @@ export function NoteDetails() {
         flex: 1,
         backgroundColor: theme.colors.background,
       }}>
-      <NoteDetailsHeader note={note} form={form} isFormDirty={isFormDirty} />
+      <NoteDetailsHeader
+        note={note}
+        form={form}
+        isFormDirty={isFormDirty}
+        onBackPress={handleBack}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}>
@@ -121,11 +169,34 @@ export function NoteDetails() {
           {/* Tags Card */}
           <Card style={styles.card} elevation={2}>
             <Card.Content>
-              <NoteTagsSection note={note} form={form} onNavigateToTags={() => router.push("/tags")} />
+              <NoteTagsSection
+                note={note}
+                form={form}
+                onNavigateToTags={() => router.push("/tags")}
+              />
             </Card.Content>
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Unsaved Changes Dialog */}
+      <Portal>
+        <Dialog visible={unsavedDialogVisible} onDismiss={cancelNavigation}>
+          <Dialog.Title>Unsaved Changes</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">
+              You have unsaved changes. Would you like to save them before leaving?
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={cancelNavigation}>Cancel</Button>
+            <Button onPress={discardChanges}>Discard</Button>
+            <Button onPress={handleSave} loading={saveMutation.isPending}>
+              Save
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
