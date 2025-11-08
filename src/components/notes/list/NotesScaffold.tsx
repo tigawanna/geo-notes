@@ -1,7 +1,6 @@
 import { SortOption } from "@/data-access-layer/notes-api";
 import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
 import { useFilterStore } from "@/store/filter-store";
-import { MenuView } from "@react-native-menu/menu";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
@@ -9,6 +8,7 @@ import { LocationObject } from "expo-location";
 import { StyleSheet, View } from "react-native";
 import { Button, IconButton, Searchbar, Text, useTheme } from "react-native-paper";
 import { LoadingIndicatorDots } from "../../state-screens/LoadingIndicatorDots";
+import { NotesContextMenu } from "./ContexxtMenu";
 
 interface NotesScaffoldProps {
   children: React.ReactNode;
@@ -67,65 +67,12 @@ export function NotesScaffold({
         {isSelectionMode ? (
           <IconButton icon="close" onPress={onToggleSelectionMode} size={24} />
         ) : (
-          <MenuView
-            title="Options"
-          
-            actions={[
-              {
-                id: "select-all",
-                title: "Select All",
-                image: "ic_menu_add",
-              },
-              {
-                id: "toggle-column",
-                title: isDualColumn ? "Single Column" : "Dual Column",
-                image: isDualColumn ? "rectangle.grid.1x2" : "rectangle.grid.2x2",
-              },
-              {
-                id: "sort-recent-desc",
-                title: "Recent (Newest)",
-                image: "arrow.down",
-              },
-              {
-                id: "sort-recent-asc",
-                title: "Recent (Oldest)",
-                image: "arrow.up",
-              },
-              {
-                id: "sort-distance-asc",
-                title: "Distance (Closest)",
-                image: "location.circle",
-              },
-              {
-                id: "sort-distance-desc",
-                title: "Distance (Farthest)",
-                image: "location.circle",
-              },
-            ]}
-            onPressAction={({ nativeEvent }) => {
-              switch (nativeEvent.event) {
-                case "select-all":
-                  onToggleSelectionMode();
-                  break;
-                case "toggle-column":
-                  onToggleColumnMode();
-                  break;
-                case "sort-recent-desc":
-                  setSortOption("recent-desc");
-                  break;
-                case "sort-recent-asc":
-                  setSortOption("recent-asc");
-                  break;
-                case "sort-distance-asc":
-                  setSortOption("distance-asc");
-                  break;
-                case "sort-distance-desc":
-                  setSortOption("distance-desc");
-                  break;
-              }
-            }}>
-            <IconButton icon="dots-vertical" size={24} />
-          </MenuView>
+          <NotesContextMenu
+            isDualColumn={isDualColumn}
+            onToggleSelectionMode={onToggleSelectionMode}
+            onToggleColumnMode={onToggleColumnMode}
+            setSortOption={setSortOption}
+          />
         )}
       </View>
       <View
