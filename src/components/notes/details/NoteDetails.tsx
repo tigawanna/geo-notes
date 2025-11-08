@@ -17,7 +17,6 @@ import { NoteDetailsHeader } from "./NoteDetailsHeader";
 import { NoteLocationSection } from "./NoteLocationSection";
 import { NoteTagsSection } from "./NoteTagsSection";
 import { useUnsavedChanges } from "./use-unsaved-changes";
-import { logger } from "@/utils/logger";
 
 export type TNoteForm = Omit<TNote, "id" | "created" | "updated" | "location" | "tags"> & {
   tags: string[];
