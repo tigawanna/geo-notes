@@ -180,8 +180,6 @@ export function Notes() {
     if (isSelectionMode) {
       toggleNoteSelection(noteId);
     } else {
-      console.log(`Navigating to note details for noteId: ${noteId}`);
-      // router.push(`/note/details?id=\${noteId}` as any);
       router.push(`/note/details?id=${noteId}`);
     }
   };

@@ -82,7 +82,6 @@ export function NoteCard({
               // Show distance only when note has location AND distance is valid
               if (hasNoteLocation && validDistance) {
                 const formatted = formatKillometers(note.distance_km);
-                console.log("Formatted distance:", note.distance_km,formatted);
                 if (formatted) {
                   return (
                     <Text variant="bodySmall" style={styles.distance}>
