@@ -94,14 +94,23 @@ export function ClosestNoteFloatingCard({
                     style={styles.linkIcon}
                   />
                 </Pressable>
-                <View style={styles.detailsRow}>
-                  <Text variant="bodySmall" style={styles.label}>
-                    📍 Closest
-                  </Text>
-                  <Text variant="bodySmall" style={styles.distance}>
-                    {formatKillometers(closestNote.distance_km)}
-                  </Text>
-                </View>
+                {(() => {
+                  const hasNoteLocation = !!closestNote.latitude && !!closestNote.longitude;
+                  const validDistance = typeof closestNote.distance_km === "number" && Number.isFinite(closestNote.distance_km);
+                  if (hasNoteLocation && validDistance) {
+                    return (
+                      <View style={styles.detailsRow}>
+                        <Text variant="bodySmall" style={styles.label}>
+                          📍 Closest
+                        </Text>
+                        <Text variant="bodySmall" style={styles.distance}>
+                          {formatKillometers(closestNote.distance_km)}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return null;
+                })()}
               </View>
             </Pressable>
             <FAB
@@ -132,14 +141,23 @@ export function ClosestNoteFloatingCard({
                     style={styles.linkIcon}
                   />
                 </Pressable>
-                <View style={styles.detailsRow}>
-                  <Text variant="bodySmall" style={styles.label}>
-                    📍 Closest
-                  </Text>
-                  <Text variant="bodySmall" style={styles.distance}>
-                    {formatKillometers(closestNote.distance_km)}
-                  </Text>
-                </View>
+                {(() => {
+                  const hasNoteLocation = !!closestNote.latitude && !!closestNote.longitude;
+                  const validDistance = typeof closestNote.distance_km === "number" && Number.isFinite(closestNote.distance_km);
+                  if (hasNoteLocation && validDistance) {
+                    return (
+                      <View style={styles.detailsRow}>
+                        <Text variant="bodySmall" style={styles.label}>
+                          📍 Closest
+                        </Text>
+                        <Text variant="bodySmall" style={styles.distance}>
+                          {formatKillometers(closestNote.distance_km)}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return null;
+                })()}
               </View>
             </Pressable>
             <FAB

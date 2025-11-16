@@ -7,9 +7,9 @@ import Animated, { FadeIn } from "react-native-reanimated";
 const CARD_SPACING = 8;
 
 export interface NoteWithDistance extends TNote {
-  latitude: string;
-  longitude: string;
-  distance_km: number;
+  latitude: string | null;
+  longitude: string | null;
+  distance_km: number | null;
 }
 
 interface NoteCardProps {
@@ -66,15 +66,34 @@ export function NoteCard({
             </Text>
           )}
           <View style={styles.footer}>
-            {isLocationLoading ? (
-              <Text variant="bodySmall" style={styles.distance}>
-                📍 ...
-              </Text>
-            ) : (
-              <Text variant="bodySmall" style={styles.distance}>
-                📍 {formatKillometers(note.distance_km)}
-              </Text>
-            )}
+            {(() => {
+              const hasNoteLocation = !!note.latitude && !!note.longitude;
+              const validDistance = typeof note.distance_km === "number" && Number.isFinite(note.distance_km);
+              
+              // Show loading indicator only when location is being fetched AND note has coordinates
+              if (isLocationLoading && hasNoteLocation) {
+                return (
+                  <Text variant="bodySmall" style={styles.distance}>
+                    📍 ...
+                  </Text>
+                );
+              }
+              
+              // Show distance only when note has location AND distance is valid
+              if (hasNoteLocation && validDistance) {
+                const formatted = formatKillometers(note.distance_km);
+                console.log("Formatted distance:", note.distance_km,formatted);
+                if (formatted) {
+                  return (
+                    <Text variant="bodySmall" style={styles.distance}>
+                      📍 {formatted}
+                    </Text>
+                  );
+                }
+              }
+              
+              return null;
+            })()}
           </View>
         </Card.Content>
       </Card>
@@ -93,10 +112,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   footer: {
-    marginTop: 12,
     gap: 4,
   },
   distance: {
+    marginTop: 6,
     opacity: 0.7,
   },
   checkboxContainer: {
