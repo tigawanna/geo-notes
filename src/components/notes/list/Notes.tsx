@@ -11,14 +11,20 @@ import { useSnackbar } from "@/lib/react-native-paper/snackbar/global-snackbar-s
 import { useFilterStore } from "@/store/filter-store";
 import { useSettingsStore } from "@/store/settings-store";
 import { createGeoJSONPoint } from "@/utils/note-utils";
-import { FlashList } from "@shopify/flash-list";
+import { FlashList, FlashListRef } from "@shopify/flash-list";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
-import { useState } from "react";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  UIManager,
+  View,
+} from "react-native";
 import { FAB, Text, useTheme } from "react-native-paper";
 import { LoadingFallback } from "../../state-screens/LoadingFallback";
 import { BulkActionsBar } from "./BulkActionsBar";
@@ -27,15 +33,30 @@ import { NotesScaffold } from "./NotesScaffold";
 
 const CONTAINER_PADDING = 8;
 
+// Enable LayoutAnimation on Android
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export function Notes() {
   const [showRefreshControl, setShowRefreshControl] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDualColumn, setIsDualColumn] = useState(true);
+  const listRef = useRef<FlashListRef<NoteWithDistance>>(null);
   const { location, isLoading: isLocationLoading } = useDeviceLocation();
   const lat = location?.coords.latitude || 0;
   const lng = location?.coords.longitude || 0;
   const { locationEnabled } = useSettingsStore();
   const { selectedTagId } = useFilterStore();
+
+  // Scroll to top when location changes
+  useEffect(() => {
+    if (location && listRef.current) {
+      // Prepare FlashList for layout animation (required for Reanimated entering/exiting animations)
+      listRef.current.prepareForLayoutAnimationRender();
+      listRef.current.scrollToOffset({ offset: 0, animated: true });
+    }
+  }, [lat, lng, location]);
   const theme = useTheme();
   const qc = useQueryClient();
   const { showSnackbar } = useSnackbar();
@@ -238,6 +259,7 @@ export function Notes() {
   return (
     <NotesScaffold {...scaffoldProps}>
       <FlashList
+        ref={listRef}
         data={notes}
         renderItem={renderNoteCard}
         keyExtractor={(item: NoteWithDistance) => item.id}
@@ -245,6 +267,7 @@ export function Notes() {
         numColumns={isDualColumn ? 2 : 1}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.masonryContainer}
+        // onLayout={() => listRef?.current?.prepareForLayoutAnimationRender()}
         refreshControl={
           <RefreshControl
             refreshing={showRefreshControl}

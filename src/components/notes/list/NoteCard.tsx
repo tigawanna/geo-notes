@@ -2,6 +2,7 @@ import type { TNote } from "@/lib/drizzle/schema";
 import { formatKillometers } from "@/utils/note-utils";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Card, Checkbox, Text, useTheme } from "react-native-paper";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 const CARD_SPACING = 8;
 
@@ -31,10 +32,11 @@ export function NoteCard({
   const theme = useTheme();
 
   return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={isSelectionMode ? undefined : onLongPress}
-      style={{ marginHorizontal: CARD_SPACING / 2 }}>
+    <Animated.View entering={FadeIn.duration(300)}>
+      <Pressable
+        onPress={onPress}
+        onLongPress={isSelectionMode ? undefined : onLongPress}
+        style={{ marginHorizontal: CARD_SPACING / 2 }}>
       <Card
         style={[
           styles.card,
@@ -77,6 +79,7 @@ export function NoteCard({
         </Card.Content>
       </Card>
     </Pressable>
+    </Animated.View>
   );
 }
 
@@ -84,6 +87,7 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: CARD_SPACING,
     width: "100%",
+    paddingTop: 8,
   },
   content: {
     marginTop: 8,
