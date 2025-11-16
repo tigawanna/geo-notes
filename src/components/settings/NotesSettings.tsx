@@ -31,6 +31,7 @@ export function NotesSettings() {
           setQuickCopyMode(nextMode);
         }}
       />
+      {/* Handedness moved to Appearance settings */}
       <Divider />
     </List.Section>
   );

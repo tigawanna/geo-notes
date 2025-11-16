@@ -8,7 +8,7 @@ import { Divider, Icon, List, Switch, useTheme } from "react-native-paper";
 export function AppearanceSettings() {
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useThemeStore();
-  const { dynamicColors, toggleDynamicColors, colorScheme, setColorScheme, hapticsEnabled, toggleHapticsEnabled } = useSettingsStore();
+  const { dynamicColors, toggleDynamicColors, colorScheme, setColorScheme, hapticsEnabled, toggleHapticsEnabled, handedness, toggleHandedness } = useSettingsStore();
   const colorSchemeOptions = Object.entries(customTheme).map(([key, value]) => ({
     key: key as CustomThemeKey,
     color: value.light.primary,
@@ -59,6 +59,12 @@ export function AppearanceSettings() {
           </TouchableOpacity>
         ))}
       </View>
+      <List.Item
+        title="Handedness"
+        description={`Optimized for ${handedness}-handed use`}
+        left={(props) => <List.Icon {...props} icon={handedness === "right" ? "hand-back-right" : "hand-back-left"} />}
+        onPress={toggleHandedness}
+      />
       <Divider />
     </List.Section>
   );

@@ -26,8 +26,10 @@ import {
   View,
 } from "react-native";
 import { FAB, Text, useTheme } from "react-native-paper";
+import { useSharedValue } from "react-native-reanimated";
 import { LoadingFallback } from "../../state-screens/LoadingFallback";
 import { BulkActionsBar } from "./BulkActionsBar";
+import { ClosestNoteFloatingCard } from "./ClosestNoteFloatingCard";
 import { NoteCard, type NoteWithDistance } from "./NoteCard";
 import { NotesScaffold } from "./NotesScaffold";
 
@@ -43,10 +45,14 @@ export function Notes() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDualColumn, setIsDualColumn] = useState(true);
   const listRef = useRef<FlashListRef<NoteWithDistance>>(null);
+  
+  // Reanimated shared value for floating card visibility
+  const showFloatingCard = useSharedValue(true);
+  
   const { location, isLoading: isLocationLoading } = useDeviceLocation();
   const lat = location?.coords.latitude || 0;
   const lng = location?.coords.longitude || 0;
-  const { locationEnabled } = useSettingsStore();
+  const { locationEnabled, handedness } = useSettingsStore();
   const { selectedTagId } = useFilterStore();
 
   // Scroll to top when location changes
@@ -71,6 +77,11 @@ export function Notes() {
     clearSelection,
     exitSelectionMode,
   } = useNoteSelection();
+
+  // Update floating card visibility when selection mode changes
+  useEffect(() => {
+    showFloatingCard.value = !isSelectionMode;
+  }, [isSelectionMode, showFloatingCard]);
 
   const {
     data,
@@ -198,6 +209,13 @@ export function Notes() {
     setIsDualColumn(!isDualColumn);
   };
 
+  const closestNote = notes.length > 0 ? notes[0] : null;
+
+  const handleCopyFromFloating = (text: string) => {
+    triggerSuccessHaptic();
+    showSnackbar(`"${text}" copied to clipboard`);
+  };
+
   const scaffoldProps = {
     searchQuery,
     setSearchQuery,
@@ -244,14 +262,14 @@ export function Notes() {
           <Text variant="bodyMedium" style={styles.emptyText}>
             Create your first geo-note!
           </Text>
+          <FAB
+            icon="plus"
+            style={styles.emptyFab}
+            onPress={handleCreateNote}
+            loading={createNoteMutation.isPending}
+            label="New Note"
+          />
         </View>
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={handleCreateNote}
-          loading={createNoteMutation.isPending}
-          label="New Note"
-        />
       </NotesScaffold>
     );
   }
@@ -267,7 +285,6 @@ export function Notes() {
         numColumns={isDualColumn ? 2 : 1}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.masonryContainer}
-        // onLayout={() => listRef?.current?.prepareForLayoutAnimationRender()}
         refreshControl={
           <RefreshControl
             refreshing={showRefreshControl}
@@ -285,12 +302,13 @@ export function Notes() {
           isDeleting={deleteNoteMutation.isPending}
         />
       )}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={handleCreateNote}
-        loading={createNoteMutation.isPending}
-        label="New Note"
+      <ClosestNoteFloatingCard
+        closestNote={closestNote}
+        isVisible={showFloatingCard}
+        onCopy={handleCopyFromFloating}
+        onAddNew={handleCreateNote}
+        isCreating={createNoteMutation.isPending}
+        handedness={handedness}
       />
     </NotesScaffold>
   );
@@ -316,12 +334,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 8,
+    marginBottom: 16,
     opacity: 0.7,
   },
-  fab: {
-    position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 0,
+  emptyFab: {
+    marginTop: 16,
   },
 });
