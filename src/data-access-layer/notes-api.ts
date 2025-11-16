@@ -14,30 +14,45 @@ export type GetNotesProps = {
 };
 
 export async function getNotes({ sortOption, location, tagId, searchQuery }: GetNotesProps) {
+  const no_location = location === undefined || (location.lat === 0 && location.lng === 0);
   try {
-    logger.log("Fetching notes with params:", { sortOption, location, tagId, searchQuery });
+    logger.log("Fetching notes with params:", {
+      sortOption,
+      location,
+      tagId,
+      searchQuery,
+      no_location,
+    });
     const notesColumn = getTableColumns(notes);
     // Create reference point using ST_GeomFromText (confirmed working)
     const currentLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
 
-
     const query = db
       .select({
         ...notesColumn,
-        latitude: sql<string>`ST_Y(${notes.location})`.as("latitude"),
-        longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
-        distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currentLocationGeoJSON})) * 111.325`.as("distance_km")
+        latitude: !no_location
+          ? sql<string>`ST_Y(${notes.location})`.as("latitude")
+          : sql`NULL`.as("latitude"),
+        longitude: !no_location
+          ? sql<string>`ST_X(${notes.location})`.as("longitude")
+          : sql`NULL`.as("longitude"),
+
+        distance_km: !no_location
+          ? sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currentLocationGeoJSON})) * 111.325`.as(
+              "distance_km"
+            )
+          : sql`NULL`.as("distance_km"),
       })
       .from(notes);
 
     // Build where conditions
     const whereConditions = [];
-    
+
     // Apply tag filter if specified
     if (tagId) {
       whereConditions.push(sql`json_extract(${notes.tags}, '$') LIKE '%' || ${tagId} || '%'`);
     }
-    
+
     // Apply search filter if specified
     if (searchQuery && searchQuery.length > 0) {
       const lowercaseSearch = searchQuery.toLowerCase();
@@ -49,7 +64,7 @@ export async function getNotes({ sortOption, location, tagId, searchQuery }: Get
         )
       );
     }
-    
+
     // Apply all where conditions if any exist
     if (whereConditions.length > 0) {
       query.where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions));
@@ -99,7 +114,7 @@ export async function getNotes({ sortOption, location, tagId, searchQuery }: Get
     }
 
     const res = await query;
-   // logger.log("Fetched notes:", res.slice(0, 5)); // Log only first 5 notes for brevity
+    // logger.log("Fetched notes:", res.slice(0, 5)); // Log only first 5 notes for brevity
 
     return {
       result: res,
@@ -185,7 +200,7 @@ export async function getNote(id: string, location?: TLocation) {
     const notesColumn = getTableColumns(notes);
     const { location: _location, ...otherColumns } = notesColumn; // Exclude location from spread
     const currLocationGeoJSON = `{"type":"Point","coordinates":[${location?.lng},${location?.lat}]}`;
-    
+
     const query = db
       .select({
         ...otherColumns, // Spread other columns without location
@@ -197,9 +212,10 @@ export async function getNote(id: string, location?: TLocation) {
         longitude: sql<string>`ST_X(${notes.location})`.as("longitude"),
         // Calculate great-circle distance using SpatiaLite's geodesic functions
         // ST_Distance returns distance in meters by default
-        distance_km: sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON})) * 111.325`.as(
-          "distance_km"
-        ),
+        distance_km:
+          sql`ST_Distance(${notes.location}, GeomFromGeoJSON(${currLocationGeoJSON})) * 111.325`.as(
+            "distance_km"
+          ),
       })
       .from(notes)
       .where(eq(notes.id, id))

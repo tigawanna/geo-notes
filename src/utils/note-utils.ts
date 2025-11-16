@@ -18,7 +18,12 @@ export const createGeoJSONPoint = ({
 };
 
 // Utility to format distance in km or meters
-export const formatKillometers = (distanceKm: number): string => {
+export const formatKillometers = (distanceKm?: number | null): string => {
+  // Guard against invalid inputs (null/undefined/NaN/Infinity)
+  if (typeof distanceKm !== "number" || !Number.isFinite(distanceKm)) {
+    return "";
+  }
+
   if (distanceKm < 1) {
     const meters = Math.round(distanceKm * 1000);
     return `${meters} m`;

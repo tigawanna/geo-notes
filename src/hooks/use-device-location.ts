@@ -1,3 +1,4 @@
+import { useSettingsStore } from "@/store/settings-store";
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useEffect, useRef } from "react";
@@ -40,6 +41,7 @@ export async function manuallySetLocation({
 export function useDeviceLocation() {
   const queryClient = useQueryClient();
   const watcherRef = useRef<Location.LocationSubscription | null>(null);
+  const { locationEnabled } = useSettingsStore();
 
   const {
     data: location,
@@ -52,9 +54,20 @@ export function useDeviceLocation() {
     queryFn: getCurrentLocation,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: false,
+    enabled: locationEnabled, // Only fetch when location tracking is enabled
   });
 
   useEffect(() => {
+    // Don't start watching if location tracking is disabled
+    if (!locationEnabled) {
+      // Clean up any existing watcher
+      if (watcherRef.current) {
+        watcherRef.current.remove();
+        watcherRef.current = null;
+      }
+      return;
+    }
+
     const startWatching = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
@@ -78,7 +91,7 @@ export function useDeviceLocation() {
         watcherRef.current.remove();
       }
     };
-  }, [queryClient]);
+  }, [queryClient, locationEnabled]); // Re-run when locationEnabled changes
 
   const { mutate: requestLocationAgain, isPending: isRefreshing } = useMutation({
     mutationFn: getCurrentLocation,
