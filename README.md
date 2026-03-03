@@ -17,6 +17,10 @@ GeoNotes is a React Native mobile application built with Expo that automatically
 - Local SQLite database with Spatialite extension for geospatial queries
 - Responsive UI optimized for mobile devices
 
+![Screenshot_20260303-171542](https://github.com/user-attachments/assets/87bf0d34-d53b-4096-8e29-77f001cdc0a6)
+![Screenshot_20260303-171604](https://github.com/user-attachments/assets/03882ef4-4f32-4982-933e-2bc6e3ba1bea)
+![Screenshot_20260303-171421](https://github.com/user-attachments/assets/bae35f65-979b-4090-baed-28406de4c337)
+
 ## Prerequisites
 
 - Node.js (LTS version recommended)
