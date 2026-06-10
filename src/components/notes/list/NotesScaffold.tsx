@@ -1,8 +1,8 @@
 import { SortOption } from "@/data-access-layer/notes-api";
 import { tagsQueryOptions } from "@/data-access-layer/tags-query-options";
 import { useFilterStore } from "@/store/filter-store";
-import type { DrawerNavigationProp } from "@react-navigation/drawer";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "expo-router/react-navigation";
+import type { DrawerNavigationProp } from "expo-router/build/react-navigation/drawer";
 import { useQuery } from "@tanstack/react-query";
 import { LocationObject } from "expo-location";
 import { StyleSheet, View } from "react-native";

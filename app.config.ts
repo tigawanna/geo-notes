@@ -56,9 +56,6 @@ const getPlugins = (idt: UniqueIDT) => {
         android: {
           usesCleartextTraffic: is_production ? false : true, // ? enable HTTP requests
         },
-        ios: {
-          flipper: true,
-        },
       },
     ],
   ];
@@ -79,7 +76,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     orientation: "portrait",
     icon: "./assets/icons/splash-icon-dark.png",
     userInterfaceStyle: "automatic",
-    newArchEnabled: true,
     ios: {
       ...config.ios,
       supportsTablet: true,
@@ -101,7 +97,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         monochromeImage: "./assets/icons/adaptive-icon.png",
       },
       // googleServicesFile: "./google-services.json",
-      edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: appIdentifier,
     },

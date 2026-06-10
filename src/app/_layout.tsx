@@ -7,7 +7,7 @@ import {
   useAppState,
   useOnlineManager,
 } from "@/lib/tanstack/query/react-native-setup-hooks";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";

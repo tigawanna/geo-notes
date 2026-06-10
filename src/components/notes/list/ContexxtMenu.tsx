@@ -1,5 +1,14 @@
 import { SortOption } from "@/data-access-layer/notes-api";
-import { Button, ContextMenu } from "@expo/ui/jetpack-compose";
+import menuIcon from "@expo/material-symbols/menu.xml";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  Host,
+  Icon,
+  IconButton,
+  Text,
+} from "@expo/ui/jetpack-compose";
+import { useState } from "react";
 import { useTheme } from "react-native-paper";
 
 interface NotesContextMenuProps {
@@ -16,51 +25,83 @@ export function NotesContextMenu({
   setSortOption,
 }: NotesContextMenuProps) {
   const theme = useTheme();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const contentColor = theme.colors.onSurface;
+
+  const dismiss = () => setIsExpanded(false);
+
   return (
-    <ContextMenu style={{}}>
-      <ContextMenu.Trigger>
-        <Button variant={"borderless"} style={{ minWidth: 30 }}>
-          ☰
-        </Button>
-      </ContextMenu.Trigger>
-      <ContextMenu.Items>
-        <Button
-          leadingIcon="outlined.CheckCircle"
-          elementColors={{ contentColor: theme.colors.onSurface }}
-          onPress={onToggleSelectionMode}>
-          Select All
-        </Button>
-        <Button
-          leadingIcon="filled.Menu"
-          elementColors={{ contentColor: theme.colors.onSurface }}
-          onPress={onToggleColumnMode}>
-          {isDualColumn ? "Single Column" : "Dual Column"}
-        </Button>
-        <Button
-          leadingIcon="sharp.KeyboardArrowDown"
-          elementColors={{ contentColor: theme.colors.onSurface }}
-          onPress={() => setSortOption("recent-desc")}>
-          Recent (Newest)
-        </Button>
-        <Button
-          leadingIcon="sharp.KeyboardArrowUp"
-          elementColors={{ contentColor: theme.colors.onSurface }}
-          onPress={() => setSortOption("recent-asc")}>
-          Recent (Oldest)
-        </Button>
-        <Button
-          leadingIcon="filled.LocationOn"
-          elementColors={{ contentColor: theme.colors.onSurface }}
-          onPress={() => setSortOption("distance-asc")}>
-          Distance (Closest)
-        </Button>
-        <Button
-          leadingIcon="sharp.LocationOn"
-          elementColors={{ contentColor: theme.colors.onSurface }}
-          onPress={() => setSortOption("distance-desc")}>
-          Distance (Farthest)
-        </Button>
-      </ContextMenu.Items>
-    </ContextMenu>
+    <Host matchContents>
+      <DropdownMenu expanded={isExpanded} onDismissRequest={dismiss}>
+        <DropdownMenu.Trigger>
+          <IconButton onClick={() => setIsExpanded(true)}>
+            <Icon
+              source={menuIcon}
+              size={24}
+              tint={contentColor}
+              contentDescription="Notes menu"
+            />
+          </IconButton>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Items>
+          <DropdownMenuItem
+            onClick={() => {
+              dismiss();
+              onToggleSelectionMode();
+            }}>
+            <DropdownMenuItem.Text>
+              <Text color={contentColor}>Select All</Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              dismiss();
+              onToggleColumnMode();
+            }}>
+            <DropdownMenuItem.Text>
+              <Text color={contentColor}>
+                {isDualColumn ? "Single Column" : "Dual Column"}
+              </Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              dismiss();
+              setSortOption("recent-desc");
+            }}>
+            <DropdownMenuItem.Text>
+              <Text color={contentColor}>Recent (Newest)</Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              dismiss();
+              setSortOption("recent-asc");
+            }}>
+            <DropdownMenuItem.Text>
+              <Text color={contentColor}>Recent (Oldest)</Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              dismiss();
+              setSortOption("distance-asc");
+            }}>
+            <DropdownMenuItem.Text>
+              <Text color={contentColor}>Distance (Closest)</Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              dismiss();
+              setSortOption("distance-desc");
+            }}>
+            <DropdownMenuItem.Text>
+              <Text color={contentColor}>Distance (Farthest)</Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+        </DropdownMenu.Items>
+      </DropdownMenu>
+    </Host>
   );
 }

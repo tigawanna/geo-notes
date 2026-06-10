@@ -6,7 +6,7 @@ import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItemList,
-} from "@react-navigation/drawer";
+} from "expo-router/build/react-navigation/drawer";
 import { useQuery } from "@tanstack/react-query";
 import { Drawer } from "expo-router/drawer";
 import React from "react";
@@ -148,7 +148,7 @@ export default function DrawerLayout() {
           options={{
             title: "Home",
             headerShown: false,
-            drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            drawerIcon: ({ color, size }) => (
               <MaterialCommunityIcon size={size} name="home-map-marker" color={color} />
             ),
           }}
@@ -158,7 +158,7 @@ export default function DrawerLayout() {
           options={{
             title: "Settings",
             headerShown: true,
-            drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            drawerIcon: ({ color, size }) => (
               <MaterialIcon size={size} name="settings" color={color} />
             ),
           }}
@@ -168,7 +168,7 @@ export default function DrawerLayout() {
           options={{
             title: "Manage Tags",
             headerShown: true,
-            drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            drawerIcon: ({ color, size }) => (
               <MaterialCommunityIcon size={size} name="tag-multiple" color={color} />
             ),
           }}

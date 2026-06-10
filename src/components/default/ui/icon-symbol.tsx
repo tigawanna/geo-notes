@@ -13,12 +13,7 @@ const MAPPING = {
   "paperplane.fill": "send",
   "05.square": "settings",
   "chevron.right": "chevron-right",
-} as Partial<
-  Record<
-    import("expo-symbols").SymbolViewProps["name"],
-    React.ComponentProps<typeof MaterialIcons>["name"]
-  >
->;
+} as Record<string, React.ComponentProps<typeof MaterialIcons>["name"]>;
 
 export type IconSymbolName = keyof typeof MAPPING;
 

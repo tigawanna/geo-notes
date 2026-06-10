@@ -14,6 +14,7 @@ type QueryKey = [
   ...(readonly unknown[])
 ];
 
+
 interface MyMeta extends Record<string, unknown> {
   invalidates?: [QueryKey[0], ...(readonly unknown[])][];
   [key: string]: unknown;
