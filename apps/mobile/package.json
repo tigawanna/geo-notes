@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "dev": "APP_VARIANT=development npx expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "fetch:spatialite": "node ./scripts/fetch-spatialite-libs.js",
     "eas-build-pre-install": "node ./scripts/fetch-spatialite-libs.js",

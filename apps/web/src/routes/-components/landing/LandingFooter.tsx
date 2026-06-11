@@ -4,35 +4,52 @@ import { Link } from "@tanstack/react-router";
 
 export function LandingFooter() {
   const currentYear = new Date().getFullYear();
+  const Icon = AppConfig.icon;
 
   return (
-    <footer className="mx-auto max-w-360 border-x border-t border-border/50">
-      <div className="flex flex-col items-center justify-between gap-6 px-8 py-12 font-mono text-xs text-muted-foreground md:flex-row md:px-16">
-        <Link to="/" className="transition-colors hover:text-base-content">
-          {AppConfig.wordmark}
-          <span className="text-primary">.</span>
-          <span className="ml-2">— {landingFooter.tagline}</span>
-        </Link>
-        <div className="flex flex-wrap items-center justify-center gap-6">
-          {landingNav.links.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="transition-colors hover:text-base-content"
+    <footer className="mx-auto max-w-6xl px-6 pb-12">
+      <div className="rounded-4xl bg-base-200 px-6 py-10 ring-1 ring-base-300 md:px-10">
+        <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+          <div className="flex flex-col gap-3">
+            <Link to="/" className="flex items-center gap-2.5">
+              <span className="flex size-9 items-center justify-center rounded-2xl bg-primary text-primary-content">
+                <Icon className="size-5" />
+              </span>
+              <span className="text-lg font-semibold tracking-tight text-base-content">
+                {AppConfig.name}
+              </span>
+            </Link>
+            <p className="max-w-xs text-sm text-neutral-content">{landingFooter.tagline}</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+            {landingNav.links.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="text-neutral-content transition-colors hover:text-base-content"
+              >
+                {item.label}
+              </a>
+            ))}
+            <Link
+              to="/privacy"
+              className="text-neutral-content transition-colors hover:text-base-content"
             >
-              {item.label}
-            </a>
-          ))}
-          <Link to="/privacy" className="transition-colors hover:text-base-content">
-            Privacy
-          </Link>
-          <Link to="/dashboard" className="transition-colors hover:text-base-content">
-            Dashboard
-          </Link>
+              Privacy
+            </Link>
+            <Link
+              to="/dashboard"
+              className="rounded-full bg-base-100 px-4 py-2 font-medium text-base-content ring-1 ring-base-300 transition-colors hover:bg-base-300/60"
+            >
+              Dashboard
+            </Link>
+          </div>
         </div>
-      </div>
-      <div className="border-t border-border/50 px-8 py-4 text-center font-mono text-[11px] text-muted-foreground/60 md:px-16">
-        © {currentYear} {AppConfig.name}
+
+        <div className="mt-8 border-t border-base-300 pt-6 text-sm text-neutral-content">
+          © {currentYear} {AppConfig.name} · Offline-first, privacy-friendly notes.
+        </div>
       </div>
     </footer>
   );

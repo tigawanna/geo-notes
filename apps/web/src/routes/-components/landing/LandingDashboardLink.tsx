@@ -1,27 +1,23 @@
 import { useViewer } from "@/data-access-layer/auth/viewer";
 import { Link } from "@tanstack/react-router";
 
+const buttonClass =
+  "rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-content transition-transform hover:scale-[1.03]";
+
 export default function LandingDashboardLink() {
   const { viewer } = useViewer();
 
   if (viewer?.user) {
     return (
-      <Link
-        to="/dashboard"
-        className="flex h-full items-center bg-primary px-6 font-mono text-xs tracking-widest text-primary-content uppercase transition-opacity hover:opacity-90"
-      >
-        Dashboard →
+      <Link to="/dashboard" className={buttonClass}>
+        Dashboard
       </Link>
     );
   }
 
   return (
-    <Link
-      to="/auth"
-      search={{ returnTo: "/dashboard" }}
-      className="flex h-full items-center bg-primary px-6 font-mono text-xs tracking-widest text-primary-content uppercase transition-opacity hover:opacity-90"
-    >
-      Get Started →
+    <Link to="/auth" search={{ returnTo: "/dashboard" }} className={buttonClass}>
+      Get started
     </Link>
   );
 }

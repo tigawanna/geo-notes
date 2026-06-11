@@ -1,4 +1,12 @@
-import { MapPin, NotebookPen, RefreshCw, ShieldCheck, Smartphone, WifiOff } from "lucide-react";
+import {
+  MapPin,
+  NotebookPen,
+  RefreshCw,
+  ShieldCheck,
+  Smartphone,
+  Tag,
+  WifiOff,
+} from "lucide-react";
 
 export const landingNav = {
   status: "Offline notes · Location tags",
@@ -28,9 +36,12 @@ export const landingHero = {
   },
   navPanel: {
     title: "Site visit notes",
-    distance: "12 entries",
-    elevation: "3 tags",
-    eta: "Kilimani",
+    context: "Kilimani · last edited 2h ago",
+    stats: [
+      { label: "Entries", value: "128", icon: NotebookPen },
+      { label: "Tags", value: "24", icon: Tag },
+      { label: "Places", value: "16", icon: MapPin },
+    ],
   },
 } as const;
 
