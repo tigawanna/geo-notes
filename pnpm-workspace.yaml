@@ -1,9 +1,3 @@
-nodeLinker: hoisted
-
-onlyBuiltDependencies:
-  - '@firebase/util'
-  - esbuild
-  - protobufjs
-  - react-native-mmkv
-  - react-native-nitro-modules
-  - unrs-resolver
+packages:
+  - apps/*
+  - packages/*

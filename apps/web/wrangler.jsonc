@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Create remote DB: wrangler d1 create geo-notes-db
+  // Then replace database_id and run: pnpm db:migrate:remote
+  "name": "geo-notes-web",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/server.tsx",
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "geo-notes-db",
+      "database_id": "00000000-0000-0000-0000-000000000002",
+      "migrations_dir": "drizzle",
+    },
+  ],
+}

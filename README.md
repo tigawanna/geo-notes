@@ -2,7 +2,29 @@
 
 **🚧 Work in Progress 🚧**
 
-GeoNotes is a React Native mobile application built with Expo that automatically organizes your notes based on your current location. **All operations run 100% locally** - no internet connection required after initial installation. The app uses SQLite with Spatialite for offline geospatial data storage and leverages modern React Native development practices.
+GeoNotes is a pnpm + Turborepo monorepo with an offline-first Expo mobile app and a TanStack Start site (landing page, privacy policy, sync API).
+
+| Package | Path | Purpose |
+|---------|------|---------|
+| `mobile` | `apps/mobile` | Expo React Native app |
+| `web` | `apps/web` | Landing page, privacy policy, sync server |
+
+**All mobile operations run 100% locally** — no internet required after install. The app uses SQLite with SpatiaLite for offline storage.
+
+```bash
+pnpm install
+pnpm --filter mobile dev
+pnpm --filter web dev
+```
+
+### Deploy web to Cloudflare
+
+```bash
+wrangler d1 create geo-notes-db
+# update database_id in apps/web/wrangler.jsonc
+pnpm --filter web db:migrate:remote
+pnpm deploy:web
+```
 
 **Note:** This is currently an Android-only project. iOS support is not yet implemented.
 
