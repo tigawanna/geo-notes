@@ -64,8 +64,8 @@ apps/mobile/android/app/src/main/jniLibs/
 
 # Secrets
 .secrets
-google-services.json
-google-services.dev.json
+google-services*.json
+GoogleService-Info.plist
 
 # Generated native folders
 *.apk
