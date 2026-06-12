@@ -1,5 +1,5 @@
 import { formatKillometers } from "@/utils/note-utils";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons/static";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";

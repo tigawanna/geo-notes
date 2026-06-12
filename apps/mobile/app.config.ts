@@ -30,6 +30,8 @@ const getAppName = () => {
 const getPlugins = (idt: UniqueIDT) => {
   const is_production = idt === "com.tigawanna.geonotes";
   const plugins: ConfigContext["config"]["plugins"] = [
+    "@react-native-vector-icons/material-icons",
+    "@react-native-vector-icons/material-design-icons",
     "expo-router",
     "expo-background-task",
     "expo-secure-store",
