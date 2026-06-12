@@ -37,6 +37,7 @@ const getPlugins = (idt: UniqueIDT) => {
     "expo-secure-store",
     "expo-web-browser",
     "./plugins/opsqlite-spatialite/with-spatialite",
+    "./plugins/with-gradle-memory",
     [
       "expo-splash-screen",
       {
