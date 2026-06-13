@@ -67,6 +67,8 @@ apps/mobile/android/app/src/main/jniLibs/
 google-services*.json
 GoogleService-Info.plist
 
-# Generated native folders
+# Mobile / EAS build artifacts
 *.apk
 *.aab
+*.ipa
+build-*
