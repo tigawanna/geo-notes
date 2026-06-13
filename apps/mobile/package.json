@@ -80,7 +80,7 @@
     "react-native-material-menu": "^2.0.0",
     "react-native-mmkv": "^4.0.0",
     "react-native-nitro-device-info": "^1.2.0",
-    "react-native-nitro-modules": "^0.31.4",
+    "react-native-nitro-modules": "^0.35.0",
     "react-native-pager-view": "8.0.1",
     "react-native-paper": "^5.15.3",
     "react-native-paper-tabs": "^0.11.4",
@@ -97,6 +97,7 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-async-generator-functions": "^7.28.0",
+    "babel-preset-expo": "~56.0.15",
     "@types/react": "~19.2.14",
     "@typescript/native-preview": "7.0.0-dev.20260519.1",
     "babel-plugin-transform-remove-console": "^6.9.4",
