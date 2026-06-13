@@ -2,15 +2,15 @@
   "expo": {
     "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFBFF",
-      "imageWidth": 200
+      "backgroundColor": "#4a4845",
+      "imageWidth": 449
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#822121"
+        "backgroundColor": "#4a4845"
       }
     },
     "web": {
